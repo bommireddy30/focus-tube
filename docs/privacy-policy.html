@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — Focus Tube</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 720px;
+    margin: 48px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #2b2a3d;
+  }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 19px; margin-top: 34px; }
+  .updated { color: #6f6c8a; font-size: 14px; margin-bottom: 28px; }
+  code { background: #f2f2f7; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  a { color: #f0713f; }
+  ul { padding-left: 22px; }
+</style>
+</head>
+<body>
+
+<h1>Privacy Policy — Focus Tube</h1>
+<p class="updated">Last updated: 2026-08-25</p>
+
+<p>Focus Tube is a browser extension that hides YouTube Shorts and
+keyword-matched videos. This policy covers what data it does and does
+not handle.</p>
+
+<h2>Data collection</h2>
+<p>Focus Tube collects <strong>no data</strong>. It does not:</p>
+<ul>
+  <li>Send any information to a server (it makes no network requests at all)</li>
+  <li>Track your browsing history or viewing activity</li>
+  <li>Use analytics, telemetry, or crash reporting</li>
+  <li>Contain ads or third-party scripts</li>
+  <li>Share, sell, or transmit anything to anyone</li>
+</ul>
+
+<h2>What is stored, and where</h2>
+<p>Focus Tube stores two small pieces of state, entirely on your own
+device (or synced only through your own signed-in browser account —
+never through Focus Tube's own servers, because it has none):</p>
+<ul>
+  <li><strong>Your settings</strong> (which categories to block, your
+    keyword list) — stored via the browser's <code>storage.sync</code>
+    API, the same mechanism the browser itself uses to sync your other
+    extension settings across your signed-in devices.</li>
+  <li><strong>A daily blocked-video count</strong> — stored via
+    <code>storage.local</code> (this device only), used solely to show
+    the "blocked today" number in the popup and the toolbar badge. It
+    resets automatically at local midnight and is never read by
+    anything outside the extension.</li>
+</ul>
+<p>Nothing above ever leaves your browser.</p>
+
+<h2>Permissions</h2>
+<ul>
+  <li><strong><code>storage</code></strong> — required to save your
+    settings and the local block count described above.</li>
+  <li><strong>Host access to <code>*://*.youtube.com/*</code></strong>
+    — required so the extension's content script can run on YouTube
+    pages to find and hide Shorts, Mixes, and keyword-matched videos.
+    This access is used only to read and modify the page's DOM in your
+    own browser tab; it is never used to read page content elsewhere or
+    send it anywhere.</li>
+</ul>
+
+<h2>Remote code</h2>
+<p>Focus Tube does not execute any remote code. All JavaScript ships
+packaged inside the extension — there is no <code>eval()</code>, no
+dynamically injected <code>&lt;script&gt;</code> tags, and no fetching
+or execution of code from any external URL.</p>
+
+<h2>Changes to this policy</h2>
+<p>If this policy changes, the "Last updated" date above will change
+and the update will be reflected in the extension's Chrome Web Store
+listing.</p>
+
+<h2>Contact</h2>
+<p>Questions about this policy or the extension can be filed as an
+issue on the project's GitHub repository:<br>
+<a href="https://github.com/bommireddy30/focus-tube">github.com/bommireddy30/focus-tube</a></p>
+
+</body>
+</html>
