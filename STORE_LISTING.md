@@ -130,10 +130,10 @@ https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
 (Or a GitHub Pages URL if you'd rather it render as a plain webpage
 instead of a GitHub markdown file — see README for the one-time setup.)
 
-## Screenshots (1280x800 or 640x400, at least 1, up to 5)
+## Screenshots (1280x800, at least 1, up to 5)
 
-Ready in `store-assets/` — see that folder's README for details on
-each:
+Ready in `store-assets/` as 24-bit PNG, no alpha — see that folder's
+README for details on each:
 - `popup.png`
 - `youtube-search.png`
 - `youtube-watch.png`
@@ -143,7 +143,10 @@ Optional extras if you want more than the required minimum of 1: the
 Keywords card with example keywords added, or Calm Mode's recolored UI
 on a watch page (neither captured yet).
 
-## Promo tile (optional, 440x280)
+## Small promo tile (440x280)
 
-Not included — simple version: extension icon + "Focus Tube" wordmark
-on the popup's pastel gradient background (see `--bg` in `popup.css`).
+Ready: `store-assets/promo-small.png`.
+
+## Marquee promo tile (1400x560)
+
+Ready: `store-assets/promo-marquee.png`.
