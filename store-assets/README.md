@@ -11,8 +11,8 @@ Screenshots captured from a real, unpacked-extension Chromium session
 - `youtube-watch.png` — a watch page with 0 visible `/shorts/` links in
   up-next and the Autoplay toggle fully hidden. Good as-is for the
   listing.
-- `youtube-home.png` — **not submission-ready.** Logged-out Chrome shows
-  a bare "Try searching to get started" placeholder instead of a real
-  feed, so this doesn't demonstrate Shorts-shelf or Mixes blocking.
-  Replace with a real screenshot from a signed-in session before
-  submitting, per `STORE_LISTING.md`'s screenshot list.
+
+Still missing: a home-feed screenshot showing Shorts-shelf/Mixes
+blocking. Needs a signed-in session (logged-out Chrome only shows a
+"Try searching to get started" placeholder, nothing to demonstrate) —
+see `STORE_LISTING.md`'s screenshot list.
