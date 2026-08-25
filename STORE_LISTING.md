@@ -115,6 +115,19 @@ DOM. The extension does not read, store, or transmit page content —
 matching happens entirely in-memory in the user's own tab.
 ```
 
+## Remote code justification (Privacy practices tab)
+
+Answer: **No, this item does not use remote code.**
+
+```
+Focus Tube does not execute any remote code. All JavaScript
+(content.js, popup.js, background.js) ships packaged inside the
+extension — there is no eval(), no Function() constructor use, no
+dynamically injected <script> tags, and no fetching or execution of
+code from any external URL. The extension makes zero network requests
+of any kind.
+```
+
 ## Data usage disclosures (Privacy practices tab checkboxes)
 
 - Does this item collect or use user data? **No** (all state is stored
