@@ -2,28 +2,8 @@
 //
 // Blocking categories: Shorts player, Shorts shelves, Shorts in search,
 // Loose Shorts (feeds/history/channels/up-next), Shorts links
-// (nav/chip/tab), and free-text Keywords.
-//
-// FREE_LIMIT below is a placeholder 100/day gate tracked entirely in
-// chrome.storage.local (this device only). Once dailyCount reaches it,
-// effectivelyEnabled() forces blocking off for the rest of the day
-// regardless of the user's own `enabled` toggle — flipping the popup
-// switch back on, or writing `enabled: true` into focusTubeSettings
-// directly, has no effect, because the quota check is a separate,
-// independent gate rather than something the toggle can override. That's
-// the intended "locked until you upgrade" behavior.
-//
-// Caveat this DOESN'T cover: someone editing focusTubeStats itself in
-// DevTools (e.g. setting dailyCount back to 0) to reset the quota early —
-// there's no way to close that off with only chrome.storage.local as the
-// source of truth, since the extension has no way to tell a legitimate
-// midnight rollover apart from a manually edited one. TODO: once a
-// backend exists, replace this local dailyCount with a server-verified
-// count (keyed off the account/subscription, not something the client can
-// just overwrite) — see popup.js's PLANS for the tier ladder this is
-// meant to grow into. Silver/Gold/Platinum aren't functional yet; only
-// Free's cap is actually enforced, and only as well as local storage can
-// enforce anything.
+// (nav/chip/tab), Mixes, Autoplay, Calm Mode, and free-text Keywords.
+// Everything is free — no daily cap, no tiers, no license keys.
 //
 // Shadow DOM note: YouTube's newer components render inside shadow roots,
 // invisible to plain querySelectorAll/.closest(). deepQueryAll() and
@@ -32,7 +12,6 @@
 (function () {
   const SETTINGS_KEY = "focusTubeSettings";
   const STATS_KEY = "focusTubeStats";
-  const FREE_LIMIT = 100;
 
   const DEFAULT_SETTINGS = {
     enabled: true,
@@ -71,18 +50,11 @@
   // Same reasoning again, for Calm Mode's recoloring/badge-hiding rules.
   document.documentElement.classList.add("focustube-calm-mode");
 
-  // Only Free's cap is real right now (see FREE_LIMIT note above) — this
-  // is where a future tier lookup would replace the flat 100 comparison.
-  function quotaExceeded() {
-    return stats.dailyCount >= FREE_LIMIT;
-  }
-
   // Single source of truth for "should blocking actually be happening right
-  // now" — combines the user's own toggle with the daily quota, so every
-  // call site (hiding passes, the player redirect, the CSS class) agrees
-  // on when to act like the extension is off.
+  // now" — every call site (hiding passes, the player redirect, the CSS
+  // class) reads this instead of settings.enabled directly.
   function effectivelyEnabled() {
-    return !!settings.enabled && !quotaExceeded();
+    return !!settings.enabled;
   }
 
   function syncActiveClass() {
@@ -388,9 +360,6 @@
     return toggle.hasAttribute("checked");
   }
 
-  // Unmetered — this is a preference/UI-chrome removal (like the nav/chip
-  // passes), not a piece of content being blocked, so it doesn't count
-  // toward the daily quota.
   function disableAndHideAutoplay() {
     let count = 0;
     for (const container of deepQueryAll(AUTOPLAY_TOGGLE_SELECTOR)) {
@@ -547,7 +516,7 @@
     }
   }
 
-  // ---- Stats (local, per device — drives the badge AND the 100/day gate) --
+  // ---- Stats (local, per device — badge only, informational, no cap) ------
 
   function ensureDailyRollover() {
     const today = getLocalDateString();
@@ -589,16 +558,6 @@
     if (newlyHidden > 0) {
       stats.dailyCount += newlyHidden;
       persistStats();
-    }
-    // The batch that pushes dailyCount past FREE_LIMIT is hidden *during*
-    // runAllPasses(), before it can know the count is about to cross the
-    // line — so without this, those just-hidden elements would stay
-    // hidden until some later DOM mutation happened to trigger another
-    // pass. Re-checking here, right after the count updates, makes the
-    // reveal immediate instead of dependent on further page activity.
-    if (quotaExceeded()) {
-      revealAll();
-      syncActiveClass();
     }
   }
 

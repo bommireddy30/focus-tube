@@ -23,22 +23,8 @@
   </header>
 
   <section class="card stat-card">
-    <div class="stat-top">
-      <span class="stat-number" id="countNumber">0</span>
-      <span class="stat-limit" id="countLimit">/ 100 today</span>
-    </div>
-    <div class="quota-bar-track">
-      <div class="quota-bar-fill" id="quotaBarFill"></div>
-    </div>
-    <p class="stat-note" id="statNote">Free plan &mdash; resets at midnight</p>
-  </section>
-
-  <section class="card limit-banner" id="limitBanner" hidden>
-    <p class="limit-banner-title">Daily limit reached</p>
-    <p class="limit-banner-copy">
-      Shorts and keyword-matched videos are showing again until your quota
-      resets at midnight. Upgrade below for more headroom.
-    </p>
+    <span class="stat-number" id="countNumber">0</span>
+    <span class="stat-label">blocked today</span>
   </section>
 
   <section class="card settings" id="settings">
@@ -146,14 +132,9 @@
     </label>
   </section>
 
-  <section class="card plans-card">
-    <p class="section-heading">Plans</p>
-    <p class="section-sub">Payments aren't live yet &mdash; preview of what's coming.</p>
-    <div class="plan-list" id="planList"></div>
-  </section>
-
   <footer>
     <span class="footer-note">Changes apply instantly</span>
+    <span class="footer-note footer-disclaimer">Unofficial &middot; not affiliated with YouTube or Google</span>
   </footer>
 
   <script src="popup.js"></script>

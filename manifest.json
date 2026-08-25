@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Focus Tube – Block YouTube Shorts",
-  "version": "2.9.0",
+  "version": "3.0.0",
   "description": "Removes YouTube Shorts from your feed, search results, sidebar and navigation for a distraction-free viewing experience.",
   "permissions": ["storage"],
   "host_permissions": ["*://*.youtube.com/*"],

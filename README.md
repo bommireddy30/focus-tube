@@ -194,10 +194,25 @@ blocking isn't possible on iOS.
   top is the one that does a full un-hide; per-category toggles are
   scoped that way deliberately to keep the reveal logic simple for now.
 
-## Next steps
+## Publishing to the Chrome Web Store
 
-- Add a proper extension icon/name if you want to diverge further from
-  YouTube's branding (safer for App Review / Chrome Web Store policy).
-- Add a simple onboarding screen on install explaining the toggles.
-- Write the Chrome Web Store listing copy using the ASO keywords discussed
-  earlier (block shorts, focus, distraction-free, digital wellbeing).
+- `PRIVACY.md` — privacy policy (no data collection; covers the
+  `storage` and host permissions). Link to this file's raw GitHub URL
+  (or a GitHub Pages URL) in the dashboard's "Privacy policy" field.
+- `STORE_LISTING.md` — draft title, summary, description, single-purpose
+  statement, and permission justifications for the Developer Dashboard's
+  listing and Privacy Practices tabs.
+- `focus-tube-v3.0.0.zip` — packaged build (manifest + scripts + icons
+  only) ready to upload as a new item/version. Regenerate after any
+  further code change — it's gitignored, not tracked.
+- A popup footer disclaimer ("Unofficial · not affiliated with YouTube
+  or Google") was added to reduce trademark-policy rejection risk.
+
+Still needs a human before submitting:
+- A paid ($5, one-time) Chrome Web Store developer account, if not
+  already set up.
+- Real screenshots (see the list in `STORE_LISTING.md`) — these need a
+  signed-in Chrome session and can't be generated from this repo alone.
+- A quick manual check that Calm Mode's notification-badge/subscribe-
+  button selectors still match current YouTube markup (see "Known
+  limitations" above) before flipping it on by default for real users.

@@ -20,20 +20,6 @@ function defaultStats() {
   return { dailyCount: 0, dailyDate: "" };
 }
 
-// Must match content.js's FREE_LIMIT — there's no backend yet, so this is
-// the only tier that's actually enforced. See content.js's top-of-file
-// comment for the plan to make Silver/Gold/Platinum real later.
-const FREE_LIMIT = 100;
-
-// Showpiece only — clicking these doesn't do anything real yet, and no
-// checkout exists. Prices are INR.
-const PLANS = [
-  { key: "free", name: "Free", limit: FREE_LIMIT, price: 0 },
-  { key: "silver", name: "Silver", limit: 500, price: 30 },
-  { key: "gold", name: "Gold", limit: 1000, price: 50 },
-  { key: "platinum", name: "Platinum", limit: Infinity, price: 200 },
-];
-
 // Suggestions only — nothing here is applied automatically. Picked to be
 // fairly specific clickbait/outrage phrasing rather than generic single
 // words (e.g. "prank" or "reaction"), since a broad word risks silently
@@ -68,14 +54,8 @@ let currentStats = defaultStats();
 
 const el = {
   settings: document.getElementById("settings"),
-  keywordsCard: document.getElementById("keywordsCard"),
-  enabledInput: document.getElementById("enabled"),
   statusLabel: document.getElementById("statusLabel"),
   countNumber: document.getElementById("countNumber"),
-  countLimit: document.getElementById("countLimit"),
-  quotaBarFill: document.getElementById("quotaBarFill"),
-  statNote: document.getElementById("statNote"),
-  limitBanner: document.getElementById("limitBanner"),
   playerActionChoice: document.getElementById("playerActionChoice"),
   pillVideo: document.getElementById("pillVideo"),
   pillHome: document.getElementById("pillHome"),
@@ -83,42 +63,16 @@ const el = {
   addKeyword: document.getElementById("addKeyword"),
   keywordList: document.getElementById("keywordList"),
   suggestedKeywordList: document.getElementById("suggestedKeywordList"),
-  planList: document.getElementById("planList"),
 };
 
-// True once today's free quota is used up. content.js enforces the actual
-// blocking-stops-regardless-of-the-toggle behavior on its own (it doesn't
-// trust this popup) — this is purely about making the popup UI honest and
-// physically un-clickable while locked, so there's no control here that
-// *looks* like it re-enables blocking but silently does nothing. Note this
-// is still just a client-side read of chrome.storage.local: someone could
-// edit focusTubeStats directly in DevTools to reset dailyCount and get
-// around it. That's expected until there's a backend verifying the count
-// server-side instead of trusting local storage — see the TODO in
-// content.js next to FREE_LIMIT.
-function isLocked() {
-  return (currentStats.dailyCount || 0) >= FREE_LIMIT;
-}
-
 function renderToggles() {
-  const locked = isLocked();
-
   TOGGLE_FIELDS.forEach((field) => {
     const input = document.getElementById(field);
     if (input) input.checked = !!currentSettings[field];
   });
 
-  el.enabledInput.disabled = locked;
-
   el.settings.classList.toggle("disabled", !currentSettings.enabled);
-  el.settings.classList.toggle("locked", locked);
-  el.keywordsCard.classList.toggle("locked", locked);
-
-  el.statusLabel.textContent = locked
-    ? "Locked — daily limit reached"
-    : currentSettings.enabled
-    ? "Blocking is on"
-    : "Blocking is off";
+  el.statusLabel.textContent = currentSettings.enabled ? "Blocking is on" : "Blocking is off";
 
   el.playerActionChoice.classList.toggle("disabled", !currentSettings.blockShortsPlayer);
   el.pillVideo.classList.toggle("selected", currentSettings.shortsPlayerAction === "video");
@@ -188,61 +142,8 @@ function renderSuggestedKeywords() {
   });
 }
 
-function renderQuota() {
-  const count = currentStats.dailyCount || 0;
-  const exceeded = isLocked();
-
-  el.countNumber.textContent = count.toString();
-  el.countLimit.textContent = `/ ${FREE_LIMIT} today`;
-
-  const pct = Math.min(100, Math.round((count / FREE_LIMIT) * 100));
-  el.quotaBarFill.style.width = `${pct}%`;
-  el.quotaBarFill.className = "quota-bar-fill" + (pct >= 100 ? " full" : pct >= 80 ? " warn" : "");
-
-  el.statNote.textContent = exceeded
-    ? "Free plan — limit reached, resets at midnight"
-    : "Free plan — resets at midnight";
-
-  el.limitBanner.hidden = !exceeded;
-
-  // Lock state depends on currentStats, which loads/updates on its own
-  // timeline separate from currentSettings — re-render the toggle side too
-  // so the master switch's disabled state never lags behind the count.
-  renderToggles();
-}
-
-function renderPlans() {
-  el.planList.innerHTML = "";
-  PLANS.forEach((plan) => {
-    const tile = document.createElement("div");
-    tile.className = "plan-tile plan-" + plan.key;
-
-    const name = document.createElement("span");
-    name.className = "plan-name";
-    name.textContent = plan.name;
-
-    const limit = document.createElement("span");
-    limit.className = "plan-limit";
-    limit.textContent = plan.limit === Infinity ? "Unlimited" : `${plan.limit}/day`;
-
-    const price = document.createElement("span");
-    price.className = "plan-price";
-    price.textContent = `₹${plan.price}`;
-
-    const action = document.createElement(plan.key === "free" ? "span" : "button");
-    if (plan.key === "free") {
-      action.className = "plan-current";
-      action.textContent = "Current plan";
-    } else {
-      action.type = "button";
-      action.className = "plan-btn";
-      action.textContent = "Coming soon";
-      action.disabled = true;
-    }
-
-    tile.append(name, limit, price, action);
-    el.planList.appendChild(tile);
-  });
+function renderStats() {
+  el.countNumber.textContent = (currentStats.dailyCount || 0).toString();
 }
 
 function saveSettings() {
@@ -260,7 +161,7 @@ function loadSettings() {
 function loadStats() {
   chrome.storage.local.get(STATS_KEY, (result) => {
     currentStats = { ...defaultStats(), ...(result[STATS_KEY] || {}) };
-    renderQuota();
+    renderStats();
   });
 }
 
@@ -321,10 +222,9 @@ chrome.storage.onChanged.addListener((changes) => {
   }
   if (changes[STATS_KEY]) {
     currentStats = { ...defaultStats(), ...changes[STATS_KEY].newValue };
-    renderQuota();
+    renderStats();
   }
 });
 
 loadSettings();
 loadStats();
-renderPlans();
