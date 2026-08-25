@@ -1,0 +1,107 @@
+/* Belt-and-braces: covers a couple of Shorts containers that are
+   sometimes present in the initial HTML before content.js has run its
+   first pass. Scoped behind html.focustube-active (toggled by content.js
+   itself, in sync with the enabled setting) — a bare unconditional rule
+   here would keep hiding these regardless of the on/off toggle, since a
+   static stylesheet has no way to react to chrome.storage on its own. */
+html.focustube-active ytd-reel-shelf-renderer,
+html.focustube-active [is-shorts] {
+  display: none !important;
+}
+
+/* The in-player Autoplay toggle lives in the raw video-player chrome,
+   which re-renders its own inline styles on click/state-change — a
+   one-time el.style.display set from content.js gets clobbered almost
+   immediately, and our MutationObserver (childList/subtree only) never
+   notices an attribute-only change to re-hide it. A standing stylesheet
+   rule isn't subject to that churn, so this is the actual enforcement
+   mechanism for this one control (content.js still does the *clicking*
+   to turn autoplay off — this just keeps it visually hidden).
+
+   .focustube-autoplay-target is the primary rule: content.js climbs from
+   whatever it matched up to the real .ytp-button/<button> ancestor (the
+   element that owns the click hit-area and hover box) and marks THAT,
+   since hiding only .ytp-autonav-toggle-button-container left that outer
+   button rendered empty but still fully clickable — invisible but
+   functional. The plain class selector below is kept as a fallback in
+   case that climb ever fails to find a button ancestor. */
+html.focustube-hide-autoplay-toggle .focustube-autoplay-target,
+html.focustube-hide-autoplay-toggle .ytp-autonav-toggle-button-container {
+  display: none !important;
+}
+
+/* ---- Calm Mode --------------------------------------------------------
+   YouTube's UI leans on alarm-red (urgency/attention) and unread-count
+   badges (variable-reward anxiety) as deliberate engagement hooks. This
+   doesn't touch layout or remove anything functional — it mutes the
+   pervasive, ever-present red (buttons, progress bar, brand accent) to a
+   low-arousal slate blue, and hides the notification bell's unread-count
+   badge (the bell itself still works, you just don't see a number
+   demanding attention). Deliberately leaves the Live badge red — that
+   color is actually informational there (recorded vs. live), not just
+   decorative, so muting it trades away clarity for no real calming
+   benefit. --focustube-calm-accent is the one thing to retune if the
+   shade needs adjusting. */
+:root {
+  --focustube-calm-accent: #5b7a99;
+}
+
+html.focustube-calm-mode {
+  /* YouTube's own theme variables — overriding these recolors anything
+     that references them via var(), which is most of the persistent
+     brand-red chrome (buttons, active states, accents) in one shot. */
+  --yt-spec-brand-background-solid: var(--focustube-calm-accent) !important;
+  --yt-spec-brand-background-primary: var(--focustube-calm-accent) !important;
+  --yt-spec-call-to-action: var(--focustube-calm-accent) !important;
+  --yt-spec-call-to-action-inverse: var(--focustube-calm-accent) !important;
+}
+
+/* Direct overrides for specific elements, in case they don't actually
+   consume the variables above (or use inline colors instead) — belt-and-
+   braces the same way the variable override is. */
+html.focustube-calm-mode ytd-subscribe-button-renderer button,
+html.focustube-calm-mode .yt-spec-button-shape-next--call-to-action,
+html.focustube-calm-mode .ytp-play-progress,
+html.focustube-calm-mode .ytp-swatch-background-color {
+  background-color: var(--focustube-calm-accent) !important;
+}
+
+/* Notification bell's unread-count badge — hides the number, not the
+   bell/button itself. Several class guesses since the exact one varies
+   by YouTube's current build. */
+html.focustube-calm-mode ytd-notification-topbar-button-renderer #notification-count,
+html.focustube-calm-mode ytd-notification-topbar-button-renderer .yt-spec-icon-badge-shape__badge,
+html.focustube-calm-mode ytd-notification-topbar-button-renderer [class*="badge-shape"] {
+  display: none !important;
+}
+
+/* Thumbnail hover-autoplay preview — see pauseHoverPreviews() in
+   content.js for why this also needs a JS-side pause, not just hiding. */
+html.focustube-calm-mode ytd-video-preview {
+  display: none !important;
+}
+
+/* Reduce motion on the two attention-grabbing elements already confirmed
+   elsewhere in this file (the Live badge, the notification bell) rather
+   than guessing new "pulse"/"blink" class names — a blinking Live dot or
+   a bell-shake animation is exactly the kind of urgency cue Calm Mode is
+   meant to remove, without going as far as a blanket `* { animation:
+   none }` that could break components relying on an animationend event
+   to actually show/hide themselves. */
+html.focustube-calm-mode .ytp-live-badge,
+html.focustube-calm-mode ytd-notification-topbar-button-renderer {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Dim (not hide) view-count/metadata numbers — large bold view counts are
+   a social-proof/FOMO signal, but the information itself is still useful,
+   so this reduces prominence rather than removing it. Left "New"/trending
+   badges out of this round deliberately: they'd likely be matched by the
+   same renderer used for verified-channel checkmarks, and getting that
+   wrong would dim something people actually rely on rather than a hook. */
+html.focustube-calm-mode ytd-video-meta-block #metadata-line,
+html.focustube-calm-mode .view-count,
+html.focustube-calm-mode #count.ytd-video-view-count-renderer {
+  opacity: 0.6 !important;
+}

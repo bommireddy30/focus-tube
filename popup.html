@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Focus Tube</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon-wrap">
+        <img src="icons/icon48.png" alt="" class="brand-icon" />
+      </div>
+      <div>
+        <h1>Focus Tube</h1>
+        <p class="status-label" id="statusLabel">Blocking is on</p>
+      </div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="enabled" />
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <section class="card stat-card">
+    <div class="stat-top">
+      <span class="stat-number" id="countNumber">0</span>
+      <span class="stat-limit" id="countLimit">/ 100 today</span>
+    </div>
+    <div class="quota-bar-track">
+      <div class="quota-bar-fill" id="quotaBarFill"></div>
+    </div>
+    <p class="stat-note" id="statNote">Free plan &mdash; resets at midnight</p>
+  </section>
+
+  <section class="card limit-banner" id="limitBanner" hidden>
+    <p class="limit-banner-title">Daily limit reached</p>
+    <p class="limit-banner-copy">
+      Shorts and keyword-matched videos are showing again until your quota
+      resets at midnight. Upgrade below for more headroom.
+    </p>
+  </section>
+
+  <section class="card settings" id="settings">
+    <p class="section-heading">What to block</p>
+
+    <div class="row-group">
+      <label class="row">
+        <span class="row-text">
+          <span class="row-title">The Shorts player</span>
+          <span class="row-sub">Opening a /shorts/ link</span>
+        </span>
+        <input type="checkbox" id="blockShortsPlayer" />
+        <span class="mini-toggle"></span>
+      </label>
+      <div class="pill-choice" id="playerActionChoice">
+        <button type="button" class="pill" data-value="video" id="pillVideo">Open as a video</button>
+        <button type="button" class="pill" data-value="home" id="pillHome">Send me home</button>
+      </div>
+    </div>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Shorts shelves</span>
+        <span class="row-sub">The carousels on Home and Subscriptions</span>
+      </span>
+      <input type="checkbox" id="blockShelves" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Shorts in search</span>
+        <span class="row-sub">Results and shelves on the search page</span>
+      </span>
+      <input type="checkbox" id="blockSearchShorts" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Loose Shorts</span>
+        <span class="row-sub">In feeds, History, channels and up-next</span>
+      </span>
+      <input type="checkbox" id="blockLooseShorts" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Shorts links</span>
+        <span class="row-sub">Sidebar entry, filter chip, channel tab</span>
+      </span>
+      <input type="checkbox" id="blockShortsLinks" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Mixes</span>
+        <span class="row-sub">Auto-generated "Mixes for you" shelves and cards</span>
+      </span>
+      <input type="checkbox" id="blockMixes" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Autoplay</span>
+        <span class="row-sub">Turns off and removes the autoplay toggle on watch pages</span>
+      </span>
+      <input type="checkbox" id="disableAutoplay" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Calm Mode</span>
+        <span class="row-sub">Mutes red accents to slate blue, hides the notification unread count, disables thumbnail hover-preview</span>
+      </span>
+      <input type="checkbox" id="calmMode" />
+      <span class="mini-toggle"></span>
+    </label>
+  </section>
+
+  <section class="card keywords-card" id="keywordsCard">
+    <p class="section-heading">Keywords</p>
+    <p class="section-sub">Hides any video whose title, channel, or description matches.</p>
+
+    <p class="suggested-label">Suggested &mdash; tap to add</p>
+    <div id="suggestedKeywordList"></div>
+
+    <div class="keyword-input-row">
+      <input type="text" id="keywordInput" placeholder="e.g. drama, gossip, prank" />
+      <button type="button" id="addKeyword" class="btn-clay">Add</button>
+    </div>
+    <div class="keyword-list" id="keywordList"></div>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Match whole words only</span>
+        <span class="row-sub">Off: "war" also matches "software". On: exact word only.</span>
+      </span>
+      <input type="checkbox" id="matchWholeWord" />
+      <span class="mini-toggle"></span>
+    </label>
+  </section>
+
+  <section class="card plans-card">
+    <p class="section-heading">Plans</p>
+    <p class="section-sub">Payments aren't live yet &mdash; preview of what's coming.</p>
+    <div class="plan-list" id="planList"></div>
+  </section>
+
+  <footer>
+    <span class="footer-note">Changes apply instantly</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
