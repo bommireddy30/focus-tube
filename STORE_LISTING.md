@@ -3,6 +3,18 @@
 Reference doc for the Developer Dashboard fields. Not part of the
 extension package itself.
 
+## ASO notes
+
+Chrome Web Store has no hidden keywords field — the only text that
+feeds search/ranking is the **Title**, **Summary**, and **Description**
+below, plus the **Category**. Keywords worked in below: *Shorts
+blocker, block YouTube Shorts, distraction-free, focus, digital
+wellbeing, productivity, autoplay*. All are woven into sentences that
+describe what the extension actually does — CWS policy treats
+unnatural keyword repetition/stuffing as spam and can get a listing
+rejected or delisted, so resist the urge to pile on more synonyms than
+what's below.
+
 ## Title (max 45 chars)
 
 ```
@@ -13,9 +25,9 @@ Focus Tube – Block YouTube Shorts
 ## Summary (max 132 chars)
 
 ```
-Removes YouTube Shorts, Mixes and autoplay from your feed. Free, private, no account, no ads, no data collection.
+Shorts blocker for a distraction-free YouTube. Removes Shorts, Mixes & autoplay for focus and digital wellbeing. Free & private.
 ```
-(115 chars)
+(128 chars)
 
 ## Category
 
@@ -28,9 +40,11 @@ English (United States)
 ## Description
 
 ```
-Focus Tube removes YouTube Shorts — and other engagement hooks — from
-every surface of YouTube, so you can watch what you came to watch and
-leave.
+Focus Tube is a YouTube Shorts blocker built for focus and digital
+wellbeing. It removes Shorts, Mixes, autoplay, and other engagement
+hooks from every surface of YouTube — Home, Search, Subscriptions,
+History, and channel pages — for a distraction-free, productivity-
+friendly viewing experience. Watch what you came to watch, then leave.
 
 Unofficial and independent — not affiliated with, endorsed by, or
 sponsored by YouTube or Google.
@@ -116,16 +130,18 @@ https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
 (Or a GitHub Pages URL if you'd rather it render as a plain webpage
 instead of a GitHub markdown file — see README for the one-time setup.)
 
-## Screenshots needed (1280x800 or 640x400, at least 1, up to 5)
+## Screenshots (1280x800 or 640x400, at least 1, up to 5)
 
-Not included in this repo — capture these from a real, signed-in
-Chrome session before submitting:
-1. The popup with default settings (What to block, expanded).
-2. A YouTube Home page with Shorts hidden (ideally same page,
-   before/after, or just the clean result).
-3. The Keywords card with a couple of example keywords added.
-4. Calm Mode's recolored UI on a watch page (optional but shows a
-   feature screenshots alone won't otherwise convey).
+Ready in `store-assets/` — see that folder's README for details on
+each:
+- `popup.png`
+- `youtube-search.png`
+- `youtube-watch.png`
+- `youtube-home.png`
+
+Optional extras if you want more than the required minimum of 1: the
+Keywords card with example keywords added, or Calm Mode's recolored UI
+on a watch page (neither captured yet).
 
 ## Promo tile (optional, 440x280)
 
