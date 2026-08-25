@@ -138,10 +138,19 @@ of any kind.
 ## Privacy policy URL
 
 ```
-https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+https://raw.githubusercontent.com/bommireddy30/focus-tube/main/PRIVACY.md
 ```
-(Or a GitHub Pages URL if you'd rather it render as a plain webpage
-instead of a GitHub markdown file — see README for the one-time setup.)
+Use the **raw** URL, not the `github.com/.../blob/...` one — the
+Developer Dashboard's link checker has repeatedly reported the blob
+URL as "not reachable" because that page is a JS-rendered app shell.
+The raw URL is a plain-text response with no rendering involved, which
+the checker can actually fetch.
+
+If the raw URL also gets flagged, the fallback is `docs/privacy-policy.html`
+in this repo, already written and pushed — it needs GitHub Pages
+enabled (repo Settings → Pages → Deploy from branch → `main` → `/docs`)
+to go live at a `bommireddy30.github.io` URL, a plain static page with
+no app-shell rendering at all.
 
 ## Screenshots (1280x800, at least 1, up to 5)
 
