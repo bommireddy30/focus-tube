@@ -211,15 +211,48 @@ midnight.
 ## Design — Claymorphism
 
 The popup uses a claymorphism style: puffy, rounded "clay" shapes carved
-out of a soft pastel gradient surface. Each card/button gets a soft dark
+out of a soft gradient surface. Each card/button gets a soft dark
 drop-shadow (lift) paired with a soft light highlight on the opposite
 corner, plus a faint inset pair along the same diagonal for the rounded,
 inflated edge — this is what makes controls read as squeezable blobs
-rather than flat panels. One vivid coral accent (with a mint accent for
-keyword chips) marks anything "on" or active against the otherwise pastel
-surface. All of this lives in `:root` CSS variables at the top of
-`popup.css` (`--bg`, `--card`, `--shadow-dark`, `--shadow-light`,
-`--accent`, `--mint`) if the palette needs adjusting later.
+rather than flat panels. One vivid crimson accent (with a gold accent for
+Keywords chips, distinct from Blocked Channels' crimson ones) marks
+anything "on" or active against the otherwise soft surface. Brand pair:
+`#B81103` (crimson) + `#FFFACD` (lemon chiffon) — everything else (surfaces,
+ink, shadow tints, the Watch Stats chart colors) is derived from those
+two. All of it lives in `:root` CSS variables at the top of `popup.css`
+(`--bg`, `--card`, `--shadow-dark`, `--shadow-light`, `--accent`, `--gold`)
+if the palette needs adjusting later — shadow/glow tints specifically are
+RGB-triple variables (`--shadow-dark-rgb` etc.) consumed via
+`rgba(var(--x-rgb), alpha)`, so every rule sharing a tint at different
+alphas stays in sync from one source instead of needing hand-updated
+copies.
+
+**Dark theme** follows the browser/OS's `prefers-color-scheme` setting
+automatically — no in-app toggle, nothing stored, just a
+`@media (prefers-color-scheme: dark)` block overriding the same `:root`
+variables right after the light ones in `popup.css`. It is not simply the
+light values darkened: every token, and every Watch Stats chart color, was
+independently re-validated (WCAG contrast for UI tokens; the dataviz
+skill's `validate_palette.js --pairs all`/`--ordinal` for the categorical
+and ordinal chart colors) against dark mode's own `--card`, since a
+palette validated on one surface doesn't transfer for free. That distinction
+mattered in practice: the dataviz skill's own documented dark-mode steps
+for this exact 8-hue categorical set — reused as-is, without
+re-validating — turned out to fail `--pairs all` against this specific
+dark surface (a violet/blue collision at ΔE 2.5 under protanopia, well
+below the floor), despite being "pre-validated" elsewhere. The dark
+9-color categorical set actually shipped here (`--series-1` through
+`--series-8` plus `--series-shorts` in the dark `@media` block) was
+generated from scratch — 8 hues spread via HSL, iteratively adjusted
+against `validate_palette.js --pairs all` until it passed, the same way
+the light-mode "Shorts" 9th slot was found. Also worth knowing: `--gold`
+is a light hue even brightened for dark mode, so `--gold-ink` (the text
+color used *on* gold chips) flips to a dark ink in dark mode instead of
+staying white — reusing `.keyword-chip`'s color for `.channel-chip` (a
+different, always-crimson chip that shares the same markup) would have
+silently inherited that flip, so `.channel-chip` sets its own explicit
+`color: #ffffff` rather than relying on inheritance.
 
 ## How it works
 
