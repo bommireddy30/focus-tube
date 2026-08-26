@@ -2,8 +2,17 @@
 //
 // Blocking categories: Shorts player, Shorts shelves, Shorts in search,
 // Loose Shorts (feeds/history/channels/up-next), Shorts links
-// (nav/chip/tab), Mixes, Autoplay, Calm Mode, and free-text Keywords.
+// (nav/chip/tab), Mixes, Autoplay, Calm Mode, free-text Keywords, and
+// Blocked Channels (a hard, deterministic block by channel identity).
 // Everything is free — no daily cap, no tiers, no license keys.
+//
+// Also tracks watch time per YouTube video category (Education, Autos &
+// Vehicles, Entertainment, etc. — YouTube's own official metadata) — see
+// the "Watch time & category tracking" section below. Stored only in
+// chrome.storage.local, never transmitted anywhere; the one exception to
+// "no network calls" elsewhere in this file is a same-origin fetch back to
+// youtube.com itself (never a third party) to read a video's own category
+// after an in-app navigation — see that section for exactly when and why.
 //
 // Shadow DOM note: YouTube's newer components render inside shadow roots,
 // invisible to plain querySelectorAll/.closest(). deepQueryAll() and
@@ -12,6 +21,7 @@
 (function () {
   const SETTINGS_KEY = "focusTubeSettings";
   const STATS_KEY = "focusTubeStats";
+  const CATEGORY_STATS_KEY = "focusTubeCategoryStats";
 
   const DEFAULT_SETTINGS = {
     enabled: true,
@@ -26,6 +36,7 @@
     calmMode: true,
     keywords: [],
     matchWholeWord: false, // false = substring match, true = whole-word only
+    blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
   };
 
   function defaultStats() {
@@ -102,6 +113,7 @@
     if (path.startsWith("/feed/history")) return "history";
     if (path.startsWith("/feed/subscriptions")) return "subscriptions";
     if (path.startsWith("/results")) return "search";
+    if (path.startsWith("/shorts/")) return "shorts";
     if (path.startsWith("/watch")) return "watch";
     if (path === "/" || path.startsWith("/feed")) return "home";
     if (path.startsWith("/@") || path.startsWith("/channel/") || path.startsWith("/c/")) return "channel";
@@ -255,11 +267,18 @@
     }
   }
 
-  function hideEl(el) {
+  // `reason` (optional) is stored as the attribute's value instead of a
+  // plain "true" flag, so a specific category can later reveal just its
+  // own hides via revealByReason() below without disturbing anything
+  // hidden for a different reason. alreadyHandled()/revealAll() only ever
+  // check for the attribute's presence, not its value, so this is a
+  // backward-compatible addition — every existing hideEl(el) call site
+  // (no reason passed) keeps behaving exactly as before.
+  function hideEl(el, reason) {
     if (!el || !el.style) return false;
     if (el.getAttribute && el.getAttribute("data-focustube-hidden")) return false;
     el.style.setProperty("display", "none", "important");
-    if (el.setAttribute) el.setAttribute("data-focustube-hidden", "true");
+    if (el.setAttribute) el.setAttribute("data-focustube-hidden", reason || "true");
     return true;
   }
 
@@ -275,6 +294,21 @@
   // instead of just pausing future hides.
   function revealAll() {
     for (const el of deepQueryAll("[data-focustube-hidden]")) {
+      el.style.removeProperty("display");
+      el.removeAttribute("data-focustube-hidden");
+    }
+  }
+
+  // Undoes only the hides tagged with a specific reason (see hideEl above)
+  // — used when a specific block list shrinks, so removing one entry
+  // reveals what it hid without touching anything hidden for an unrelated
+  // reason (Shorts, a different keyword, a different blocked channel).
+  // Whatever it reveals that's still legitimately blocked for that same
+  // reason gets re-hidden within the same tick by the pass that runs right
+  // after — this only ever un-hides things that are actually no longer
+  // supposed to be hidden.
+  function revealByReason(reason) {
+    for (const el of deepQueryAll(`[data-focustube-hidden="${reason}"]`)) {
       el.style.removeProperty("display");
       el.removeAttribute("data-focustube-hidden");
     }
@@ -401,18 +435,15 @@
     }
   }
 
-  // Scans every video card found on the page once, and reports whether
-  // each one matches the active keyword list.
-  //
   // Enumerates VIDEO_ITEM_SELECTORS directly rather than anchoring on a
   // "#video-title" sub-element first — that anchor approach silently
   // found zero cards on layouts where the title element uses a different
   // id (confirmed on the Home feed's newer card components), which meant
   // keyword filtering did nothing at all on those pages despite matching
   // fine elsewhere. Enumerating the card containers themselves has no
-  // such dependency.
-  function scanCardsAgainstKeywords(lowerKeywords, wholeWord) {
-    const results = [];
+  // such dependency. Shared by keyword and channel-block scanning below —
+  // both need "one entry per visual video card," not per matched tag.
+  function getOuterVideoItemContainers() {
     const candidates = deepQueryAll(VIDEO_ITEM_SELECTORS);
     const candidateSet = new Set(candidates);
 
@@ -420,7 +451,7 @@
     // inside each other (e.g. ytd-rich-item-renderer wrapping a
     // ytd-video-renderer), and without this we'd treat one visual card
     // as two separate entries.
-    const outer = candidates.filter((el) => {
+    return candidates.filter((el) => {
       let parent = el.parentElement;
       while (parent) {
         if (candidateSet.has(parent)) return false;
@@ -428,8 +459,13 @@
       }
       return true;
     });
+  }
 
-    for (const container of outer) {
+  // Scans every video card found on the page once, and reports whether
+  // each one matches the active keyword list.
+  function scanCardsAgainstKeywords(lowerKeywords, wholeWord) {
+    const results = [];
+    for (const container of getOuterVideoItemContainers()) {
       if (alreadyHandled(container)) continue;
       const cardText = getDeepText(container).toLowerCase().trim();
       if (!cardText) continue;
@@ -455,12 +491,101 @@
     return count;
   }
 
+  // ---- Blocked channels ---------------------------------------------------
+  //
+  // A hard, deterministic block by channel identity — unlike YouTube's own
+  // "Don't recommend this channel," which is only a soft signal to the
+  // recommendation algorithm (doesn't touch Search at all, and can fade or
+  // get overridden by other signals). This hides every video from a listed
+  // channel, on every surface a video card can appear on, the same
+  // VIDEO_ITEM_SELECTORS scan Keywords uses.
+  //
+  // Matches on the channel's id (the stable part of its URL — "@handle",
+  // a "UCxxxx" channel id, or a legacy /c//user/ slug) when a card's
+  // channel link is found, since display names alone aren't unique (two
+  // different channels can share a name). Falls back to a substring match
+  // of the channel name against the card's full text — deliberately the
+  // same technique (and the same `getDeepText`) Keywords already uses,
+  // not an isolated "channel name" sub-element: an earlier version of this
+  // feature tried to isolate that element with a narrow selector, and it
+  // silently matched nothing on card layouts where that selector didn't
+  // line up — the exact failure mode the Keywords section comment above
+  // already warns about, now confirmed to bite here too. Scanning the
+  // whole card's text is more robust for the same reason it is there.
+
+  const CHANNEL_LINK_SELECTOR =
+    "ytd-channel-name a[href], #channel-name a[href], #text.ytd-channel-name a[href], " +
+    "yt-formatted-string#text a[href], ytd-video-owner-renderer a[href], " +
+    "#byline a[href], ytd-video-meta-block a[href]";
+
+  // Pulls the stable identifier out of a channel URL/path — the part that
+  // survives a channel renaming itself, unlike its display name.
+  function parseChannelIdFromHref(href) {
+    if (!href) return null;
+    let path = href;
+    try {
+      path = href.startsWith("http") ? new URL(href).pathname : href;
+    } catch (e) {
+      return null;
+    }
+    const handleMatch = path.match(/\/(@[\w.-]+)/);
+    if (handleMatch) return handleMatch[1].toLowerCase();
+    const idMatch = path.match(/\/channel\/(UC[\w-]{10,})/i);
+    if (idMatch) return idMatch[1];
+    const legacyMatch = path.match(/\/(?:c|user)\/([\w-]+)/i);
+    if (legacyMatch) return legacyMatch[1].toLowerCase();
+    return null;
+  }
+
+  function findChannelIdInCard(container) {
+    for (const link of deepQueryAll(CHANNEL_LINK_SELECTOR, container)) {
+      const id = parseChannelIdFromHref(link.getAttribute("href"));
+      if (id) return id;
+    }
+    return null;
+  }
+
+  // Hides every video card whose channel matches an entry in
+  // settings.blockedChannels — see the section comment above for why this
+  // is id-first (unique, stable, via the card's channel link) with a
+  // whole-card text substring fallback (for entries added by typed name,
+  // or whenever the link-based lookup above comes up empty).
+  function applyChannelBlock() {
+    if (!settings.blockedChannels || settings.blockedChannels.length === 0) return 0;
+
+    const blockedIds = new Set();
+    const blockedNames = [];
+    settings.blockedChannels.forEach((entry) => {
+      if (entry.id) blockedIds.add(entry.id.toLowerCase());
+      if (entry.name) blockedNames.push(entry.name.trim().toLowerCase());
+    });
+
+    let count = 0;
+    for (const container of getOuterVideoItemContainers()) {
+      if (alreadyHandled(container)) continue;
+      const id = findChannelIdInCard(container);
+      if (id && blockedIds.has(id.toLowerCase())) {
+        if (hideEl(container, "channel")) count++;
+        continue;
+      }
+      const cardText = getDeepText(container).toLowerCase();
+      if (!cardText) continue;
+      const matched = blockedNames.some((name) => name && cardText.includes(name));
+      if (matched && hideEl(container, "channel")) count++;
+    }
+    return count;
+  }
+
   // ---- Orchestration -------------------------------------------------------
 
   function runAllPasses() {
     syncActiveClass();
     syncAutoplayHideClass();
     syncCalmModeClass();
+    // Independent of the blocking master toggle below — watch-time
+    // tracking is an analytics feature, not a hiding pass, and stays live
+    // even while blocking itself is switched off.
+    maintainWatchTracking();
 
     if (!effectivelyEnabled()) {
       revealAll();
@@ -501,6 +626,7 @@
     }
 
     hiddenCount += applyKeywordFilter();
+    hiddenCount += applyChannelBlock();
 
     return hiddenCount;
   }
@@ -514,6 +640,386 @@
     } else {
       window.location.replace(`https://www.youtube.com/watch?v=${match[1]}`);
     }
+  }
+
+  // ---- Watch time & category tracking (local only, never transmitted) ----
+  //
+  // Classifies whichever video is currently open using YouTube's own
+  // official category metadata (the same field YouTube Studio shows
+  // creators — "Education", "Autos & Vehicles", "Entertainment", etc.,
+  // with a "Live" override for anything that originated as a live
+  // broadcast), plus a few more fields pulled from the same source: the
+  // creator's own tags (for the "last watched" card — finer-grained than
+  // the one broad official category), video length (to show % watched),
+  // and an upload-recency bucket derived from publishDate. All read from
+  // the video's embedded ytInitialPlayerResponse data. Watch time itself
+  // accumulates how many seconds of that video's actual footage played
+  // (via <video> timeupdate deltas, not wall-clock time — so scrubbing
+  // past a section doesn't count, pausing doesn't lose already-accumulated
+  // time, and 2x playback correctly counts as consuming content twice as
+  // fast). Totals persist in chrome.storage.local until the user resets
+  // them from the popup's Watch Stats tab (no daily rollover, unlike the
+  // block-count badge).
+  //
+  // ytInitialPlayerResponse lives in the page's own JS context (window),
+  // which an isolated-world content script can't see — but it's also
+  // embedded as plain JSON text inside an inline <script> tag, which IS
+  // visible to a content script without executing any page JS. That covers
+  // the common case (a fresh page load) at zero extra network cost. YouTube
+  // is a single-page app though, so navigating from one video to the next
+  // without a full reload leaves that inline script tag stale; the only
+  // way to get the new video's official category then is to ask YouTube
+  // for it — same-origin fetch() of that video's own watch page (no
+  // third party involved, just the site already being browsed), scraping
+  // the same ytInitialPlayerResponse field out of the response.
+
+  const UNCATEGORIZED_CATEGORY = "Uncategorized";
+  const WATCH_FLUSH_INTERVAL_MS = 8000;
+  // Guards against a seek/scrub or a stall-then-jump being misread as
+  // continuous playback — a real timeupdate tick lands well under this.
+  const MAX_TIMEUPDATE_DELTA_SEC = 1.5;
+
+  // Scans forward from `startIndex` (which must point at an opening `{`)
+  // tracking brace depth and string state, so a `}` inside a quoted string
+  // (e.g. a video description containing literal braces) doesn't end the
+  // match early — a plain non-greedy regex can't do this reliably.
+  function extractBalancedJson(text, startIndex) {
+    let depth = 0;
+    let inString = false;
+    let stringChar = "";
+    let escaped = false;
+    for (let i = startIndex; i < text.length; i++) {
+      const ch = text[i];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (ch === "\\") escaped = true;
+        else if (ch === stringChar) inString = false;
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        inString = true;
+        stringChar = ch;
+        continue;
+      }
+      if (ch === "{") {
+        depth++;
+      } else if (ch === "}") {
+        depth--;
+        if (depth === 0) return text.slice(startIndex, i + 1);
+      }
+    }
+    return null;
+  }
+
+  function extractPlayerResponseFromText(text) {
+    const markerIdx = text.indexOf("ytInitialPlayerResponse");
+    if (markerIdx === -1) return null;
+    const braceIdx = text.indexOf("{", markerIdx);
+    if (braceIdx === -1) return null;
+    const jsonText = extractBalancedJson(text, braceIdx);
+    if (!jsonText) return null;
+    try {
+      return JSON.parse(jsonText);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Videos that originated as a live broadcast keep videoDetails.isLiveContent
+  // true forever (even long after the stream ends and it's just a VOD
+  // replay) — this is YouTube's own flag, not something we infer, and past-
+  // live content behaves differently enough (unedited, often long-form) to
+  // warrant its own bucket rather than whatever official category it
+  // happens to carry.
+  const LIVE_CATEGORY = "Live";
+  // Overrides whatever official category a video carries whenever it's
+  // being watched through the Shorts swipe-feed surface itself (see
+  // getSurface()'s "shorts" branch) — this reflects the short-form
+  // consumption pattern, not an inherent property of the video, so a
+  // video watched normally at /watch still gets its real category even
+  // if it happens to also exist as a Short elsewhere. Only reachable at
+  // all when Shorts aren't being redirected away (blocking off, or
+  // blockShortsPlayer off) — see maintainWatchTracking().
+  const SHORTS_CATEGORY = "Shorts";
+  const MAX_TAGS = 5;
+
+  function bucketForPublishDate(publishDate) {
+    if (!publishDate) return "Unknown";
+    const published = new Date(publishDate);
+    if (isNaN(published.getTime())) return "Unknown";
+    const days = (Date.now() - published.getTime()) / 86400000;
+    if (days < 0) return "Unknown"; // clock skew / bad data guard
+    if (days <= 30) return "Recent";
+    if (days <= 365) return "This year";
+    return "Older";
+  }
+
+  // Pulls everything Watch Stats uses out of a player response in one
+  // place: category (YouTube's own, with the Live override above),
+  // length, the creator's own tags (for the "last watched" card — a
+  // finer-grained signal than the one broad official category), and the
+  // upload-recency bucket derived from publishDate.
+  function metaFromPlayerResponse(pr) {
+    const vd = (pr && pr.videoDetails) || {};
+    const mf = (pr && pr.microformat && pr.microformat.playerMicroformatRenderer) || {};
+    const isLive = !!vd.isLiveContent;
+    const category = isLive ? LIVE_CATEGORY : mf.category || UNCATEGORIZED_CATEGORY;
+    const lengthSeconds = parseInt(vd.lengthSeconds || mf.lengthSeconds || "0", 10) || 0;
+    const tags = Array.isArray(vd.keywords) ? vd.keywords.slice(0, MAX_TAGS) : [];
+    const publishDate = mf.publishDate || mf.uploadDate || "";
+    return {
+      category,
+      title: vd.title || "",
+      lengthSeconds,
+      tags,
+      recencyBucket: bucketForPublishDate(publishDate),
+    };
+  }
+
+  function tryReadEmbeddedPlayerResponse(videoId) {
+    for (const s of document.querySelectorAll("script")) {
+      const text = s.textContent;
+      if (!text || text.indexOf("ytInitialPlayerResponse") === -1) continue;
+      const pr = extractPlayerResponseFromText(text);
+      if (pr && pr.videoDetails && pr.videoDetails.videoId === videoId) return pr;
+    }
+    return null;
+  }
+
+  async function fetchPlayerResponseFromWatchPage(videoId) {
+    const res = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
+      credentials: "include",
+    });
+    const html = await res.text();
+    return extractPlayerResponseFromText(html);
+  }
+
+  const videoMetaCache = new Map(); // videoId -> { category, title, lengthSeconds, tags, recencyBucket }
+  const videoMetaFetchPromises = new Map(); // videoId -> in-flight Promise
+
+  // Resolves watch-stats metadata for a video, preferring data already
+  // embedded in the current page (covers a fresh page load for free) and
+  // falling back to fetching the video's own watch page only when the SPA
+  // has navigated to a different video without a full reload.
+  function resolveVideoMeta(videoId) {
+    if (videoMetaCache.has(videoId)) return Promise.resolve(videoMetaCache.get(videoId));
+    if (videoMetaFetchPromises.has(videoId)) return videoMetaFetchPromises.get(videoId);
+
+    const promise = (async () => {
+      let pr = tryReadEmbeddedPlayerResponse(videoId);
+      if (!pr) {
+        try {
+          pr = await fetchPlayerResponseFromWatchPage(videoId);
+        } catch (e) {
+          pr = null;
+        }
+      }
+      const result = metaFromPlayerResponse(pr);
+      videoMetaCache.set(videoId, result);
+      return result;
+    })();
+
+    videoMetaFetchPromises.set(videoId, promise);
+    promise.finally(() => videoMetaFetchPromises.delete(videoId));
+    return promise;
+  }
+
+  // A Shorts URL carries its video id in the path (/shorts/<id>), not the
+  // ?v= query param /watch pages use — Watch Stats needs both forms to
+  // track Shorts consumption at all.
+  function getVideoIdFromUrl() {
+    const shortsMatch = window.location.pathname.match(/^\/shorts\/([a-zA-Z0-9_-]+)/);
+    if (shortsMatch) return shortsMatch[1];
+    return new URLSearchParams(window.location.search).get("v") || "";
+  }
+
+  // On Shorts, several <video> elements can coexist in the DOM at once —
+  // adjacent items in the vertical swipe feed, kept mounted for smooth
+  // scrolling — so grabbing the first DOM match (fine on a normal /watch
+  // page, which only ever has one) can silently pick a paused/inactive
+  // neighbor whose currentTime never advances. That would look like
+  // tracking "started" (a tracker object exists) while never actually
+  // accumulating anything, since its timeupdate events never fire.
+  function findWatchVideoEl() {
+    const candidates = Array.from(
+      document.querySelectorAll(
+        "video.html5-main-video, #movie_player video, #shorts-player video, " +
+          "ytd-shorts video, ytd-reel-video-renderer video"
+      )
+    );
+    if (candidates.length === 0) {
+      // Last-resort generic fallback, same philosophy as the Shorts-card
+      // hiding passes elsewhere in this file: better to find *a* video
+      // than silently track nothing if a future YouTube layout change
+      // breaks every guess above.
+      return document.querySelector("video");
+    }
+    if (candidates.length === 1) return candidates[0];
+    return (
+      candidates.find((v) => !v.paused && v.currentTime > 0) ||
+      candidates.find((v) => !v.paused) ||
+      candidates[0]
+    );
+  }
+
+  function defaultCategoryStats() {
+    return { totals: {}, recencyTotals: {}, lastVideo: null };
+  }
+
+  // Read-modify-write against fresh storage (rather than an in-memory
+  // running total) so two YouTube tabs open at once don't clobber each
+  // other's accumulated seconds — each flush only ever adds its own delta
+  // on top of whatever is currently persisted. `lastVideo` deliberately
+  // holds only the single most-recently-watched video, not a history list —
+  // it resets to a fresh { seconds } count whenever tracking moves to a
+  // different videoId, and keeps accumulating while you stay on the same one.
+  function persistWatchedSeconds(videoId, meta, seconds) {
+    if (seconds <= 0) return;
+    try {
+      chrome.storage.local.get(CATEGORY_STATS_KEY, (result) => {
+        const catStats = { ...defaultCategoryStats(), ...(result && result[CATEGORY_STATS_KEY]) };
+        catStats.totals = { ...catStats.totals };
+        catStats.totals[meta.category] = (catStats.totals[meta.category] || 0) + seconds;
+
+        catStats.recencyTotals = { ...catStats.recencyTotals };
+        catStats.recencyTotals[meta.recencyBucket] = (catStats.recencyTotals[meta.recencyBucket] || 0) + seconds;
+
+        const last = catStats.lastVideo;
+        catStats.lastVideo =
+          last && last.videoId === videoId
+            ? {
+                ...last,
+                seconds: last.seconds + seconds,
+                category: meta.category,
+                title: meta.title || last.title,
+                lengthSeconds: meta.lengthSeconds || last.lengthSeconds,
+                tags: meta.tags && meta.tags.length ? meta.tags : last.tags,
+                lastWatchedAt: Date.now(),
+              }
+            : {
+                videoId,
+                title: meta.title || "(untitled)",
+                category: meta.category,
+                seconds,
+                lengthSeconds: meta.lengthSeconds || 0,
+                tags: meta.tags || [],
+                lastWatchedAt: Date.now(),
+              };
+
+        chrome.storage.local.set({ [CATEGORY_STATS_KEY]: catStats });
+      });
+    } catch (e) {
+      // non-critical
+    }
+  }
+
+  let watchTracker = null; // { videoId, videoEl, category, title, lengthSeconds, tags, recencyBucket, accumulatedSec, lastTime, onTimeUpdate, flushTimer }
+
+  function flushWatchTracker() {
+    if (!watchTracker) return;
+    const seconds = Math.round(watchTracker.accumulatedSec);
+    watchTracker.accumulatedSec -= seconds;
+    if (seconds > 0) {
+      persistWatchedSeconds(
+        watchTracker.videoId,
+        {
+          title: watchTracker.title,
+          category: watchTracker.category,
+          lengthSeconds: watchTracker.lengthSeconds,
+          tags: watchTracker.tags,
+          recencyBucket: watchTracker.recencyBucket,
+        },
+        seconds
+      );
+    }
+  }
+
+  function stopWatchTracking() {
+    if (!watchTracker) return;
+    flushWatchTracker();
+    if (watchTracker.videoEl) {
+      watchTracker.videoEl.removeEventListener("timeupdate", watchTracker.onTimeUpdate);
+    }
+    if (watchTracker.flushTimer) clearInterval(watchTracker.flushTimer);
+    watchTracker = null;
+  }
+
+  function startWatchTracking(videoId, videoEl) {
+    const fallbackTitle = (document.title || "").replace(/ - YouTube$/, "").trim();
+    const isShorts = getSurface() === "shorts";
+
+    watchTracker = {
+      videoId,
+      videoEl,
+      category: isShorts ? SHORTS_CATEGORY : UNCATEGORIZED_CATEGORY,
+      title: fallbackTitle,
+      lengthSeconds: 0,
+      tags: [],
+      recencyBucket: "Unknown",
+      accumulatedSec: 0,
+      lastTime: videoEl.currentTime || 0,
+    };
+
+    // Metadata resolves asynchronously — the tracker starts accumulating
+    // immediately under placeholder values so a slow lookup never loses
+    // watch time, then gets corrected in place the moment it resolves, as
+    // long as the video hasn't changed again since. The Shorts override
+    // stays pinned regardless of what the resolved official category
+    // turns out to be — see the SHORTS_CATEGORY comment above for why.
+    resolveVideoMeta(videoId).then((meta) => {
+      if (watchTracker && watchTracker.videoId === videoId) {
+        watchTracker.category = isShorts ? SHORTS_CATEGORY : meta.category;
+        watchTracker.lengthSeconds = meta.lengthSeconds;
+        watchTracker.tags = meta.tags;
+        watchTracker.recencyBucket = meta.recencyBucket;
+        if (meta.title) watchTracker.title = meta.title;
+      }
+    });
+
+    watchTracker.onTimeUpdate = () => {
+      if (!watchTracker) return;
+      if (videoEl.paused || videoEl.seeking) {
+        watchTracker.lastTime = videoEl.currentTime;
+        return;
+      }
+      const delta = videoEl.currentTime - watchTracker.lastTime;
+      watchTracker.lastTime = videoEl.currentTime;
+      if (delta > 0 && delta < MAX_TIMEUPDATE_DELTA_SEC) {
+        watchTracker.accumulatedSec += delta;
+      }
+    };
+    videoEl.addEventListener("timeupdate", watchTracker.onTimeUpdate);
+    watchTracker.flushTimer = setInterval(flushWatchTracker, WATCH_FLUSH_INTERVAL_MS);
+  }
+
+  // Cheap no-op unless the watch page's video actually changed — safe to
+  // call on every debounced pass alongside the blocking passes. Always on:
+  // there is no setting to disable Watch Stats and no reset control —
+  // it tracks continuously, independent of the blocking master toggle, on
+  // both /watch pages and the Shorts surface. Shorts only stay reachable
+  // here when they're not being redirected away — i.e. whenever blocking
+  // is off, or blockShortsPlayer specifically is off — since
+  // redirectIfShortsPage() swaps the URL before this ever sees "shorts"
+  // as the surface otherwise.
+  function maintainWatchTracking() {
+    const surface = getSurface();
+    if (surface !== "watch" && surface !== "shorts") {
+      if (watchTracker) stopWatchTracking();
+      return;
+    }
+
+    const videoId = getVideoIdFromUrl();
+    if (!videoId) return;
+
+    if (watchTracker && watchTracker.videoId !== videoId) {
+      stopWatchTracking();
+    }
+    if (watchTracker) return; // already tracking this video
+
+    const videoEl = findWatchVideoEl();
+    if (!videoEl) return; // player not mounted yet — retry next pass
+
+    startWatchTracking(videoId, videoEl);
   }
 
   // ---- Stats (local, per device — badge only, informational, no cap) ------
@@ -580,6 +1086,11 @@
       redirectIfShortsPage();
       scheduleRun();
     });
+
+    // Best-effort flush of whatever watch time has accumulated but not yet
+    // hit storage (up to WATCH_FLUSH_INTERVAL_MS worth) before the tab
+    // closes or navigates away from youtube.com entirely.
+    window.addEventListener("pagehide", () => stopWatchTracking());
   }
 
   loadSettings(init);
@@ -594,6 +1105,13 @@
       // and SPA navigation, so a Short already open would keep playing
       // uninterrupted until you navigated somewhere else yourself.
       redirectIfShortsPage();
+      // Un-hide whatever the channel-block pass hid, so removing a channel
+      // from the list actually brings its videos back instead of leaving
+      // them hidden until a reload. Anything that's still blocked (a
+      // different channel entry, or this same one if it wasn't actually
+      // removed) gets re-hidden immediately below by runAndPersist() — the
+      // reveal only ever sticks for entries that are genuinely gone now.
+      revealByReason("channel");
       runAndPersist();
     }
   });

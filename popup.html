@@ -27,8 +27,20 @@
     <span class="stat-label">blocked today</span>
   </section>
 
+  <div class="tab-bar" id="tabBar">
+    <button type="button" class="tab-btn selected" data-tab="blocking">Blocking</button>
+    <button type="button" class="tab-btn" data-tab="stats">Watch Stats</button>
+  </div>
+
+  <div id="tabPanelBlocking" class="tab-panel">
+
   <section class="card settings" id="settings">
-    <p class="section-heading">What to block</p>
+    <button type="button" class="disclosure section-heading" id="settingsToggle" data-target="settingsBody" aria-expanded="false">
+      <span>What to block</span>
+      <span class="disclosure-chevron"></span>
+    </button>
+    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, autoplay, and Calm Mode's engagement-hook cleanup.</p>
+    <div class="disclosure-body" id="settingsBody" hidden>
 
     <div class="row-group">
       <label class="row">
@@ -107,14 +119,25 @@
       <input type="checkbox" id="calmMode" />
       <span class="mini-toggle"></span>
     </label>
+
+    </div>
   </section>
 
   <section class="card keywords-card" id="keywordsCard">
-    <p class="section-heading">Keywords</p>
+    <button type="button" class="disclosure section-heading" id="keywordsToggle" data-target="keywordsBody" aria-expanded="false">
+      <span>Keywords</span>
+      <span class="disclosure-chevron"></span>
+    </button>
     <p class="section-sub">Hides any video whose title, channel, or description matches.</p>
+    <div class="disclosure-body" id="keywordsBody" hidden>
 
-    <p class="suggested-label">Suggested &mdash; tap to add</p>
-    <div id="suggestedKeywordList"></div>
+    <button type="button" class="disclosure suggested-toggle" id="suggestedToggle" data-target="suggestedBody" aria-expanded="false">
+      <span class="suggested-label">Suggested &mdash; tap to add</span>
+      <span class="disclosure-chevron"></span>
+    </button>
+    <div class="disclosure-body" id="suggestedBody" hidden>
+      <div id="suggestedKeywordList"></div>
+    </div>
 
     <div class="keyword-input-row">
       <input type="text" id="keywordInput" placeholder="e.g. drama, gossip, prank" />
@@ -130,7 +153,67 @@
       <input type="checkbox" id="matchWholeWord" />
       <span class="mini-toggle"></span>
     </label>
+
+    </div>
   </section>
+
+  <section class="card" id="channelsCard">
+    <button type="button" class="disclosure section-heading" id="channelsToggle" data-target="channelsBody" aria-expanded="false">
+      <span>Blocked Channels</span>
+      <span class="disclosure-chevron"></span>
+    </button>
+    <p class="section-sub">Hides every video from a channel, everywhere &mdash; more reliable than YouTube's own "Don't recommend."</p>
+    <div class="disclosure-body" id="channelsBody" hidden>
+
+    <p class="section-sub">Covers Home, Search, Subscriptions, and up-next. YouTube's own "Don't recommend this channel" is only a soft hint to the algorithm &mdash; it doesn't touch Search, and can fade over time. This is unconditional.</p>
+
+    <div class="keyword-input-row">
+      <input type="text" id="channelInput" placeholder="Channel name, or its URL/@handle" />
+      <button type="button" id="addChannel" class="btn-clay">Add</button>
+    </div>
+    <div class="keyword-list" id="channelList"></div>
+
+    </div>
+  </section>
+
+  </div>
+
+  <div id="tabPanelStats" class="tab-panel hidden">
+
+  <section class="card">
+    <p class="section-heading">Watch time by category</p>
+    <p class="section-sub">By YouTube's own category for each video. Tracked locally on this device only &mdash; never sent anywhere.</p>
+
+    <div class="category-pie-wrap">
+      <svg id="categoryPie" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Watch time by category"></svg>
+      <div class="category-pie-total">
+        <span class="value" id="totalWatchTime">0m</span>
+        <span class="label">watched</span>
+      </div>
+    </div>
+
+    <div id="categoryLegend" class="category-legend"></div>
+  </section>
+
+  <section class="card">
+    <button type="button" class="disclosure section-heading" id="recencyToggle" data-target="recencyBody" aria-expanded="false">
+      <span>Watch time by upload age</span>
+      <span class="disclosure-chevron"></span>
+    </button>
+    <p class="section-sub">Whether you're mostly watching recent uploads or older videos.</p>
+    <div class="disclosure-body" id="recencyBody" hidden>
+      <div id="recencyBar" class="recency-bar"></div>
+      <div id="recencyLegend" class="category-legend"></div>
+    </div>
+  </section>
+
+  <section class="card" id="recentVideosCard">
+    <p class="section-heading">Last watched</p>
+    <div id="lastVideoCard" class="last-video-card"></div>
+    <p class="section-sub empty-note" id="recentVideosEmpty">Open a video on YouTube to start tracking.</p>
+  </section>
+
+  </div>
 
   <footer>
     <span class="footer-note">Changes apply instantly</span>

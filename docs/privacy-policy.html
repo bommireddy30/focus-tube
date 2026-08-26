@@ -24,24 +24,30 @@
 <body>
 
 <h1>Privacy Policy — Focus Tube</h1>
-<p class="updated">Last updated: 2026-08-25</p>
+<p class="updated">Last updated: 2026-08-27</p>
 
 <p>Focus Tube is a browser extension that hides YouTube Shorts and
-keyword-matched videos. This policy covers what data it does and does
-not handle.</p>
+keyword-matched videos, and tracks how much time you spend watching
+different categories of content on YouTube. This policy covers what data
+it does and does not handle.</p>
 
 <h2>Data collection</h2>
-<p>Focus Tube collects <strong>no data</strong>. It does not:</p>
+<p>Focus Tube sends <strong>nothing</strong> to a server it controls, and
+talks to no third party at all. It does not:</p>
 <ul>
-  <li>Send any information to a server (it makes no network requests at all)</li>
-  <li>Track your browsing history or viewing activity</li>
   <li>Use analytics, telemetry, or crash reporting</li>
   <li>Contain ads or third-party scripts</li>
   <li>Share, sell, or transmit anything to anyone</li>
 </ul>
+<p>The one exception to "no network requests": Watch Stats occasionally
+fetches a video's own <code>youtube.com</code> watch page — the same
+site you're already on, never a third party — to read that video's
+official category. See that section below for exactly when this
+happens. Watch Stats also locally tracks your YouTube watch activity
+on-device — see that section for what this means in practice.</p>
 
 <h2>What is stored, and where</h2>
-<p>Focus Tube stores two small pieces of state, entirely on your own
+<p>Focus Tube stores three small pieces of state, entirely on your own
 device (or synced only through your own signed-in browser account —
 never through Focus Tube's own servers, because it has none):</p>
 <ul>
@@ -54,26 +60,77 @@ never through Focus Tube's own servers, because it has none):</p>
     the "blocked today" number in the popup and the toolbar badge. It
     resets automatically at local midnight and is never read by
     anything outside the extension.</li>
+  <li><strong>Watch Stats</strong> (see below) — stored via
+    <code>storage.local</code> (this device only).</li>
 </ul>
 <p>Nothing above ever leaves your browser.</p>
+
+<h2>Watch Stats (watch time by content category)</h2>
+<p>Watch Stats runs continuously whenever you have a YouTube video open
+— there is no setting to turn it off. It reads a handful of fields from
+<strong>YouTube's own metadata</strong> for whichever video you're
+watching — never anything it infers or asks a third party about:</p>
+<ul>
+  <li>The <strong>official category</strong> (Education, Entertainment,
+    Autos &amp; Vehicles, Howto &amp; Style, and so on — the same field
+    YouTube Studio shows creators), with a "Live" override for anything
+    YouTube flags as having originated from a live broadcast.</li>
+  <li>The video's <strong>length</strong>, to show what percentage of it
+    you actually watched.</li>
+  <li>The <strong>creator's own tags</strong> (the first handful only),
+    shown as plain text under the category badge — a finer-grained
+    signal than the one broad official category.</li>
+  <li>The <strong>publish date</strong>, bucketed into Recent / This
+    year / Older, to show whether you tend to watch newer uploads or
+    older ones.</li>
+</ul>
+<p>Focus Tube also measures how many seconds of actual video playback
+you watch (not wall-clock tab-open time; pausing doesn't lose
+already-accumulated time, it just stops the count while paused). All of
+this is stored locally, entirely on your device, to power the category
+pie chart, the upload-age bar, and the "last watched" card shown in the
+popup.</p>
+<p><strong>How this metadata is read.</strong> It's embedded directly in
+YouTube's own watch page as plain page data. Most of the time Focus Tube
+reads it straight out of the current page for free, at no extra network
+cost. Because YouTube is a single-page app, though, clicking from one
+video to the next without a full page reload leaves that embedded data
+pointing at the <em>previous</em> video — the only way to get the new
+video's metadata in that case is to ask YouTube for it directly, so
+Focus Tube makes a same-origin request back to that video's own
+<code>youtube.com</code> watch page (never a third party, never an ad or
+analytics domain) and reads the same fields out of the response. No
+video data, title, tags, or anything else is ever sent to a server Focus
+Tube controls, an AI model, or anyone else — this request only ever goes
+to YouTube itself, for a video you already chose to open.</p>
+<p>This data accumulates for as long as the extension is installed —
+there is no in-popup way to pause tracking or reset the totals. The only
+way to stop tracking or clear this data is to remove the extension,
+which deletes its locally stored data as part of the browser's normal
+extension uninstall behavior.</p>
 
 <h2>Permissions</h2>
 <ul>
   <li><strong><code>storage</code></strong> — required to save your
-    settings and the local block count described above.</li>
+    settings, the local block count, and the local Watch Stats data
+    described above.</li>
   <li><strong>Host access to <code>*://*.youtube.com/*</code></strong>
     — required so the extension's content script can run on YouTube
-    pages to find and hide Shorts, Mixes, and keyword-matched videos.
-    This access is used only to read and modify the page's DOM in your
-    own browser tab; it is never used to read page content elsewhere or
-    send it anywhere.</li>
+    pages to find and hide Shorts, Mixes, and keyword-matched videos,
+    and (for Watch Stats) to read a video's official category from the
+    page and, when needed after an in-app navigation, from a
+    same-origin request to that video's own <code>youtube.com</code>
+    watch page. This access never reaches beyond <code>youtube.com</code>
+    itself and nothing it reads is ever sent anywhere else.</li>
 </ul>
 
 <h2>Remote code</h2>
 <p>Focus Tube does not execute any remote code. All JavaScript ships
-packaged inside the extension — there is no <code>eval()</code>, no
-dynamically injected <code>&lt;script&gt;</code> tags, and no fetching
-or execution of code from any external URL.</p>
+packaged inside the extension — there is no <code>eval()</code> and no
+dynamically injected <code>&lt;script&gt;</code> tags. Watch Stats does
+fetch a <code>youtube.com</code> watch page's HTML as described above,
+but only to read a plain-text metadata field out of it — that response is
+never executed, evaluated, or treated as code.</p>
 
 <h2>Changes to this policy</h2>
 <p>If this policy changes, the "Last updated" date above will change

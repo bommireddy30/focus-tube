@@ -65,6 +65,11 @@ WHAT IT BLOCKS
   hover-preview autoplay.
 • Keywords — hide any video by title, channel name, or description
   text you choose, with an optional whole-word-only match mode.
+• Watch Stats — a pie chart of how many minutes you watch per YouTube
+  category (Education, Entertainment, Autos & Vehicles, Howto & Style,
+  and so on — YouTube's own official metadata), plus a "last watched"
+  card. Runs continuously and stays on your device; there's no in-app
+  toggle to disable it or reset the data.
 
 WHY
 Shorts, autoplay, and red urgency badges are deliberate engagement
@@ -73,12 +78,17 @@ behaves like a tool you use on purpose instead of a feed that pulls you
 back in.
 
 PRIVATE BY DESIGN
-Focus Tube makes zero network requests. There is no account, no
-tracking, no analytics, and nothing is ever sent anywhere. Your
-settings sync only through your browser's own built-in extension sync
-— the same mechanism it uses for your other extensions — never through
-any server Focus Tube controls, because it doesn't have one. Full
-privacy policy: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+Focus Tube talks to no third party and no server it controls — nothing
+is ever sent anywhere, and there's no account or analytics. Watch Stats
+reads each video's official YouTube category and tracks watch time
+entirely on-device (chrome.storage.local); it's never transmitted.
+Reading that category occasionally involves a same-origin request back
+to youtube.com itself — never a third party — to pick up a newly-opened
+video's metadata; see the privacy policy for details. Your settings sync
+only through your browser's own built-in extension sync — the same
+mechanism it uses for your other extensions — never through any server
+Focus Tube controls, because it doesn't have one. Full privacy policy:
+https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
 
 FREE
 Every feature above is free, with no daily cap, no tiers, and no
@@ -91,28 +101,45 @@ https://github.com/bommireddy30/focus-tube
 ## Single purpose description (Privacy practices tab)
 
 ```
-Focus Tube's single purpose is to let users hide YouTube Shorts and
-other distracting elements (Mixes, autoplay, keyword-matched videos)
-from YouTube's own web pages, via a content script that hides matching
-elements client-side.
+Focus Tube's single purpose is to help users have a more focused,
+distraction-free YouTube experience: hiding Shorts and other distracting
+elements (Mixes, autoplay, keyword-matched videos) from YouTube's own web
+pages via a content script, and showing users, locally on their own
+device, how their YouTube watch time breaks down by content category so
+they can self-monitor their viewing habits.
 ```
+
+Worth a second look before publishing: Chrome Web Store policy requires
+a genuinely *narrow* single purpose. Watch Stats is framed above as part
+of the same "focus / digital wellbeing" purpose as blocking, which is
+probably defensible, but if a review ever pushes back, the fallback is
+splitting Watch Stats into its own listing rather than broadening this
+one's stated purpose further. Also worth flagging: Watch Stats has no
+user-facing on/off toggle or reset control (by design, per the current
+build) — reviewers evaluating "user control over collected data" may
+expect one, even though the data never leaves the device.
 
 ## Permission justifications (Privacy practices tab)
 
 **`storage`**
 ```
 Used to save the user's own toggle settings and keyword list
-(chrome.storage.sync) and a local daily blocked-count used only for
-the in-popup/badge counter (chrome.storage.local). No data leaves the
-browser.
+(chrome.storage.sync); a local daily blocked-count used only for the
+in-popup/badge counter (chrome.storage.local); and, for Watch Stats,
+each video's YouTube category and watch-time totals
+(chrome.storage.local). No data leaves the browser.
 ```
 
 **Host permission: `*://*.youtube.com/*`**
 ```
 Required so the extension's content script can run on YouTube pages to
 find and hide Shorts, Mixes, and keyword-matched video elements in the
-DOM. The extension does not read, store, or transmit page content —
-matching happens entirely in-memory in the user's own tab.
+DOM, and (for Watch Stats) to read a video's official YouTube category
+from the page, occasionally via a same-origin fetch() to that video's
+own youtube.com watch page when YouTube's in-app navigation has left the
+previously-loaded copy stale. This never reaches beyond youtube.com and
+nothing read is transmitted elsewhere — matching and category extraction
+happen entirely in the user's own tab.
 ```
 
 ## Remote code justification (Privacy practices tab)
@@ -122,18 +149,36 @@ Answer: **No, this item does not use remote code.**
 ```
 Focus Tube does not execute any remote code. All JavaScript
 (content.js, popup.js, background.js) ships packaged inside the
-extension — there is no eval(), no Function() constructor use, no
-dynamically injected <script> tags, and no fetching or execution of
-code from any external URL. The extension makes zero network requests
-of any kind.
+extension — there is no eval(), no Function() constructor use, and no
+dynamically injected <script> tags. Watch Stats does make same-origin
+fetch() requests back to youtube.com (never a third party) to read a
+video's official category after an in-app
+navigation, but that response is only ever parsed for a plain-text
+metadata field — never executed, evaluated, or treated as code.
 ```
 
 ## Data usage disclosures (Privacy practices tab checkboxes)
 
-- Does this item collect or use user data? **No** (all state is stored
-  locally/synced via the browser's own extension-storage APIs, never
-  transmitted to any server the developer controls)
+As of the Watch Stats feature, this needs to change from the previous
+version's answer:
+
+- Does this item collect or use user data? **Yes** — check
+  **"Web history"** and/or **"User activity"** (whichever label the
+  dashboard currently uses for watch-history-style data). Watch Stats
+  reads a video's official YouTube category and how long you watched
+  it, and stores that in `chrome.storage.local`.
+- In the follow-up questions: this data **is not sold to third parties**,
+  **is not used for purposes unrelated to the item's core functionality**,
+  and **is not used to determine creditworthiness or for lending
+  purposes**. It is also **never transmitted off the device** — everything
+  above is stored via `chrome.storage.local`/`chrome.storage.sync` only,
+  the browser's own extension-storage APIs, with no network requests of
+  any kind.
 - Certify compliance with the Developer Program Policies: **Yes**
+
+This checkbox change needs to be made by hand in the Developer Dashboard
+before publishing the version that ships Watch Stats — it isn't something
+this repo can update on your behalf.
 
 ## Privacy policy URL
 

@@ -79,6 +79,115 @@ accounts, no tiers, no daily caps. Everything is free.
   "reaction" or "prank") to keep false-positive risk low — a broad single
   word could silently hide videos from channels someone actually wants.
 
+- **Blocked Channels** — a hard, deterministic block by channel identity,
+  everywhere a video card can appear (Home, Search, Subscriptions,
+  up-next/related). Unlike YouTube's own "Don't recommend this channel" —
+  which is only a soft signal to the recommendation algorithm, doesn't
+  touch Search results at all, and can fade or get overridden by other
+  signals — this is unconditional: any video card whose channel matches
+  a blocked entry gets hidden, full stop. Type a channel's display name,
+  or paste its URL/bare `@handle`/bare channel ID for a more precise
+  match; `parseChannelInput` in `popup.js` normalizes whichever form you
+  give it into `{ id, name }`. Matching (`applyChannelBlock` in
+  `content.js`) tries `id` first — the stable part of a channel's URL,
+  extracted from a card's channel link via `parseChannelIdFromHref` —
+  since names alone aren't unique (two different channels can share one)
+  and a channel renaming itself doesn't change its handle/id, then falls
+  back to a substring match of the name against the card's full text via
+  `getDeepText` for entries added by name (or whenever the link-based
+  lookup comes up empty). That fallback deliberately mirrors Keywords'
+  own matching rather than isolating a narrow "channel name" sub-element
+  — an earlier version tried the narrow-selector approach and it silently
+  matched nothing on card layouts where that selector didn't line up, the
+  same failure mode the Keywords section above already called out.
+  Shares the same per-card scanning (`getOuterVideoItemContainers`)
+  Keywords uses, so both passes see "one entry per visual card"
+  consistently rather than duplicating that dedup logic.
+
+- **Watch Stats** — a separate tab in the popup, unrelated to blocking,
+  and tracked independent of it too: there's no setting that turns
+  tracking off, and it covers both `/watch` pages and the Shorts
+  swipe-feed surface (`/shorts/<id>`, whose video id lives in the path,
+  not a `?v=` query param the way `/watch` does — `getVideoIdFromUrl`
+  handles both). In practice this means Shorts watch time is only ever
+  actually recorded while blocking (or specifically `blockShortsPlayer`)
+  is off, since otherwise `redirectIfShortsPage()` swaps the URL away
+  before Watch Stats ever sees the Shorts surface. Tracks how many
+  seconds of actual video playback you consume per **YouTube's own
+  official video category** (Education, Entertainment, Autos & Vehicles,
+  Howto & Style, and so on — the same field YouTube Studio shows
+  creators), overridden by two synthetic buckets that take priority over
+  whatever official category a video carries: **"Shorts"** for anything
+  watched through that swipe-feed surface (a consumption pattern, not a
+  property of the video itself — the same video watched normally at
+  `/watch` still gets its real category), and **"Live"** for anything
+  `videoDetails.isLiveContent` flags (YouTube keeps that flag true
+  forever for past-live VODs too, and that content behaves differently
+  enough to call out separately). Rendered as a donut/pie chart plus a
+  legend (top 6 categories by watch time; anything past that folds into
+  "Other" — a pie stays legible only to ~6 segments). Category/length/tags
+  data comes from `ytInitialPlayerResponse`
+  (`resolveVideoMeta`/`metaFromPlayerResponse` in `content.js`): read
+  directly out of an inline `<script>` tag already on the page when
+  possible (free, no network call), falling back to a same-origin
+  `fetch()` of that video's own `youtube.com` watch page — never a third
+  party — only when YouTube's in-app SPA navigation has left the embedded
+  copy stale (i.e. you clicked to a new video without a full page
+  reload). `extractBalancedJson`/`extractPlayerResponseFromText` do the
+  actual parsing, tracking brace depth and string state so a `}` inside a
+  video description doesn't truncate the match early. Watch time is
+  measured from the `<video>` element's own `timeupdate` deltas (actual
+  footage consumed — correctly handles skipped/scrubbed sections,
+  faster-than-1x playback, and any number of pause/resume cycles without
+  losing already-accumulated time) rather than wall-clock time the tab
+  was open. Totals persist in `chrome.storage.local` indefinitely — there
+  is deliberately no popup toggle to disable tracking and no reset
+  button, so it runs continuously for as long as the extension is
+  installed, independent of the blocking master toggle (`maintainWatchTracking`
+  in `content.js` isn't gated by any setting). The only way to stop it or
+  clear the accumulated data is to remove the extension. Category colors
+  come from a fixed, CVD-validated
+  8-hue palette (`CATEGORY_COLOR_TABLE`/`CATEGORY_COLOR_SLOTS` in
+  `popup.js`) — common categories map to a curated slot, anything else
+  (including "Live") gets a deterministic hash-based slot, and
+  "Uncategorized"/"Other" are always a neutral gray rather than a hue, so
+  a given category always reads as the same color and identity never
+  depends on color alone (every slice is also named in the legend).
+  "Shorts" is the one exception to the hue-slot/hash scheme: it's
+  hard-coded to the app's own coral accent (`SHORTS_COLOR` in
+  `popup.js`) rather than a categorical slot or a hash fallback, since
+  it's the one category this whole extension is about and the same
+  coral already means "this is what Focus Tube blocks" everywhere else
+  in the popup. Re-validated as a 9th color via the dataviz skill's
+  `validate_palette.js --pairs all` (pie slice adjacency is rank-sorted
+  by watch time, not fixed order, so any two categories can end up
+  neighboring) — it doesn't worsen the palette's existing worst-case CVD
+  pair.
+
+  The "Last watched" card (deliberately a single item, not a history
+  list) also shows: **% of the video actually watched**, using
+  `videoDetails.lengthSeconds` (e.g. "12m of 20m (60%)", capped at 100%
+  for repeat views so a rewatch doesn't show 240%); and the **creator's
+  own tags** (`videoDetails.keywords`, first 5) as a finer-grained signal
+  than the one broad official category — e.g. distinguishing "cooking"
+  from "travel" within People & Blogs, shown as plain text under the
+  category badge, not fed into the pie's bucketing.
+
+  A separate **"Watch time by upload age"** card breaks watch time down
+  by how recently each video was published — **Recent** (≤30 days),
+  **This year** (≤365 days), or **Older** — bucketed from
+  `microformat.publishDate`/`uploadDate` (`bucketForPublishDate` in
+  `content.js`) into `recencyTotals`, alongside `totals` in the same
+  `chrome.storage.local` record. Rendered as a single stacked bar rather
+  than a second pie, since these buckets are **ordinal** (order carries
+  meaning — fresher first) rather than nominal categories: a one-hue
+  ramp with monotone lightness (`--seq-600`/`--seq-450`/`--seq-300` in
+  `popup.css`, darkest = most recent), validated via the dataviz skill's
+  `validate_palette.js --ordinal`, distinct from the 8-hue categorical
+  set used for the pie. A video with no usable publish date falls into
+  "Unknown" (the same neutral gray used for "Uncategorized"/"Other"
+  elsewhere) rather than being silently folded into a real bucket.
+
 The master on/off toggle at the top of the popup actually **restores**
 everything the moment you switch it off — it doesn't just pause future
 hiding, it walks the page and un-hides everything already blocked. Flip it
@@ -188,31 +297,51 @@ blocking isn't possible on iOS.
 - `:has()` CSS selectors require a reasonably modern browser (Chrome 105+,
   Firefox 121+, Safari 15.4+). All are well past general availability as of
   2026, so this should be safe for the vast majority of users.
-- Turning an individual category toggle off (e.g. "Shorts shelves") only
-  stops *future* hiding for that category — it doesn't retroactively
-  un-hide cards that category already hid. The master on/off toggle at the
-  top is the one that does a full un-hide; per-category toggles are
-  scoped that way deliberately to keep the reveal logic simple for now.
+- Turning an individual category toggle off (e.g. "Shorts shelves"), or
+  removing a Keyword, only stops *future* hiding for that category — it
+  doesn't retroactively un-hide cards already hidden. The master on/off
+  toggle at the top is the one that does a full un-hide; per-category
+  toggles are scoped that way deliberately to keep the reveal logic
+  simple for now. **Blocked Channels is the one exception**: `hideEl()`
+  tags each hide with a reason (`"channel"` for this feature, a plain
+  flag for everything else), so removing a channel entry can call
+  `revealByReason("channel")` to un-hide exactly what that entry hid,
+  without disturbing anything hidden for an unrelated reason — see the
+  `revealByReason` comment in `content.js`. The same mechanism could
+  extend to Keywords later; it just hasn't been wired up there yet.
 
 ## Publishing to the Chrome Web Store
 
-- `PRIVACY.md` — privacy policy (no data collection; covers the
-  `storage` and host permissions). Link to this file's raw GitHub URL
-  (or a GitHub Pages URL) in the dashboard's "Privacy policy" field.
+- `PRIVACY.md` — privacy policy, covering the `storage`/host permissions
+  and what Watch Stats reads, stores, and (occasionally, same-origin
+  only) fetches. Link to this file's raw GitHub URL (or a GitHub Pages
+  URL) in the dashboard's "Privacy policy" field.
 - `STORE_LISTING.md` — draft title, summary, description, single-purpose
   statement, and permission justifications for the Developer Dashboard's
-  listing and Privacy Practices tabs.
-- `focus-tube-v3.0.0.zip` — packaged build (manifest + scripts + icons
-  only) ready to upload as a new item/version. Regenerate after any
-  further code change — it's gitignored, not tracked.
+  listing and Privacy Practices tabs. **Also flags a checkbox that must
+  be changed by hand in the dashboard** — "Does this item collect or use
+  user data?" needs to go from No to Yes as of Watch Stats, since that's
+  a dashboard-only setting this repo can't change for you.
+- `focus-tube-v<manifest version>.zip` — packaged build (manifest +
+  scripts + icons only) ready to upload as a new item/version.
+  Regenerate after any further code change — it's gitignored, not
+  tracked. Keep the version in the filename in sync with
+  `manifest.json`'s `version` field.
 - A popup footer disclaimer ("Unofficial · not affiliated with YouTube
   or Google") was added to reduce trademark-policy rejection risk.
 
 Still needs a human before submitting:
 - A paid ($5, one-time) Chrome Web Store developer account, if not
   already set up.
-- Real screenshots (see the list in `STORE_LISTING.md`) — these need a
-  signed-in Chrome session and can't be generated from this repo alone.
+- The dashboard's data-usage checkbox change described above.
+- Confirm GitHub Pages is actually live for the privacy policy URL
+  (repo Settings → Pages → Deploy from branch → `main` → `/docs`), if
+  using that fallback instead of the raw GitHub URL.
+- Fresh screenshots (see the list in `STORE_LISTING.md`) reflecting the
+  current popup — Watch Stats, Blocked Channels, and the collapsible
+  section redesign didn't exist when the current ones were captured.
+  These need a signed-in Chrome session and can't be generated from
+  this repo alone.
 - A quick manual check that Calm Mode's notification-badge/subscribe-
   button selectors still match current YouTube markup (see "Known
   limitations" above) before flipping it on by default for real users.
