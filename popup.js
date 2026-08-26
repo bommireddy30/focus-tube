@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS = {
   keywords: [],
   matchWholeWord: false,
   blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
+  theme: "system", // "system" | "light" | "dark" — see applyTheme() in popup.js and the dark-theme comment in popup.css
 };
 
 function defaultStats() {
@@ -169,6 +170,9 @@ const el = {
   playerActionChoice: document.getElementById("playerActionChoice"),
   pillVideo: document.getElementById("pillVideo"),
   pillHome: document.getElementById("pillHome"),
+  themeSystem: document.getElementById("themeSystem"),
+  themeLight: document.getElementById("themeLight"),
+  themeDark: document.getElementById("themeDark"),
   keywordInput: document.getElementById("keywordInput"),
   addKeyword: document.getElementById("addKeyword"),
   keywordList: document.getElementById("keywordList"),
@@ -221,6 +225,24 @@ document.querySelectorAll(".disclosure[data-target]").forEach((btn) => {
   });
 });
 
+// "system" removes the override entirely so the CSS @media query (zero JS,
+// zero flash) drives it; "light"/"dark" set data-theme so the always-on
+// :root[data-theme="..."] rule in popup.css forces that theme regardless
+// of what the OS prefers. See the dark-theme comment in popup.css for why
+// there's no separate "light" override rule — the plain :root defaults
+// already are the light theme.
+function applyTheme() {
+  const mode = currentSettings.theme || "system";
+  if (mode === "system") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.setAttribute("data-theme", mode);
+  }
+  el.themeSystem.classList.toggle("selected", mode === "system");
+  el.themeLight.classList.toggle("selected", mode === "light");
+  el.themeDark.classList.toggle("selected", mode === "dark");
+}
+
 function renderToggles() {
   TOGGLE_FIELDS.forEach((field) => {
     const input = document.getElementById(field);
@@ -233,6 +255,8 @@ function renderToggles() {
   el.playerActionChoice.classList.toggle("disabled", !currentSettings.blockShortsPlayer);
   el.pillVideo.classList.toggle("selected", currentSettings.shortsPlayerAction === "video");
   el.pillHome.classList.toggle("selected", currentSettings.shortsPlayerAction === "home");
+
+  applyTheme();
 
   const hasCustomizedBlocking = BLOCK_SETTING_FIELDS.some(
     (field) => currentSettings[field] !== DEFAULT_SETTINGS[field]
@@ -675,6 +699,15 @@ TOGGLE_FIELDS.forEach((field) => {
 [el.pillVideo, el.pillHome].forEach((pill) => {
   pill.addEventListener("click", () => {
     currentSettings.shortsPlayerAction = pill.dataset.value;
+    saveSettings();
+    renderToggles();
+  });
+});
+
+// Theme pills
+[el.themeSystem, el.themeLight, el.themeDark].forEach((pill) => {
+  pill.addEventListener("click", () => {
+    currentSettings.theme = pill.dataset.value;
     saveSettings();
     renderToggles();
   });

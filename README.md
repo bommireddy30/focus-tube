@@ -228,23 +228,42 @@ RGB-triple variables (`--shadow-dark-rgb` etc.) consumed via
 alphas stays in sync from one source instead of needing hand-updated
 copies.
 
-**Dark theme** follows the browser/OS's `prefers-color-scheme` setting
-automatically — no in-app toggle, nothing stored, just a
-`@media (prefers-color-scheme: dark)` block overriding the same `:root`
-variables right after the light ones in `popup.css`. It is not simply the
-light values darkened: every token, and every Watch Stats chart color, was
-independently re-validated (WCAG contrast for UI tokens; the dataviz
-skill's `validate_palette.js --pairs all`/`--ordinal` for the categorical
-and ordinal chart colors) against dark mode's own `--card`, since a
-palette validated on one surface doesn't transfer for free. That distinction
-mattered in practice: the dataviz skill's own documented dark-mode steps
-for this exact 8-hue categorical set — reused as-is, without
-re-validating — turned out to fail `--pairs all` against this specific
-dark surface (a violet/blue collision at ΔE 2.5 under protanopia, well
-below the floor), despite being "pre-validated" elsewhere. The dark
-9-color categorical set actually shipped here (`--series-1` through
-`--series-8` plus `--series-shorts` in the dark `@media` block) was
-generated from scratch — 8 hues spread via HSL, iteratively adjusted
+**Dark theme** defaults to the browser/OS's `prefers-color-scheme`
+setting, with a three-way **Auto / Light / Dark** pill switcher
+(`#themeSwitch` in the popup, right below the header) to override it —
+`theme` in settings (`"system" | "light" | "dark"`, synced). "Auto" is
+pure CSS: a `@media (prefers-color-scheme: dark)` block, zero JS
+involvement, zero flash-of-wrong-theme, since it renders correctly before
+`popup.js` even runs. Picking Light or Dark makes `applyTheme()` in
+`popup.js` set (or remove) a `data-theme` attribute on `<html>`; a
+`:root[data-theme="dark"]` rule — identical values to the `@media` block,
+kept in sync by hand since CSS can't share a custom-property block across
+an `@media` boundary without a preprocessor — forces dark regardless of
+what the OS prefers. The `@media` block itself is gated on
+`:root:not([data-theme])` so an explicit override always wins; forcing
+*light* needs no rule of its own, since the plain `:root` at the top of
+the file already is the light theme and the mere presence of
+`data-theme="light"` is what blocks the `@media` block from applying.
+
+Neither theme is simply the other darkened: every token, and every Watch
+Stats chart color, was independently re-validated (WCAG contrast for UI
+tokens; the dataviz skill's `validate_palette.js --pairs all`/`--ordinal`
+for the categorical and ordinal chart colors) against dark mode's own
+`--card`, since a palette validated on one surface doesn't transfer for
+free. That distinction mattered in practice twice over: the dataviz
+skill's own documented dark-mode steps for this exact 8-hue categorical
+set — reused as-is, without re-validating — turned out to fail
+`--pairs all` against this specific dark surface (a violet/blue collision
+at ΔE 2.5 under protanopia, well below the floor), despite being
+"pre-validated" elsewhere; and the scrollbar thumb color originally
+reused `--shadow-dark-rgb`, which goes to pure black in dark mode
+(correct for a clay drop-shadow's recessed side) but made the scrollbar
+nearly invisible against the near-black page — caught only once dark mode
+was actually checked, not assumed safe because the light version worked.
+Fixed with its own `--scrollbar-thumb-rgb` token, kept deliberately
+separate from the shadow tint. The dark 9-color categorical set actually
+shipped here (`--series-1` through `--series-8` plus `--series-shorts`)
+was generated from scratch — 8 hues spread via HSL, iteratively adjusted
 against `validate_palette.js --pairs all` until it passed, the same way
 the light-mode "Shorts" 9th slot was found. Also worth knowing: `--gold`
 is a light hue even brightened for dark mode, so `--gold-ink` (the text

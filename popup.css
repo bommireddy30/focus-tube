@@ -16,12 +16,15 @@
    different, CVD-safe red rather than this exact accent hex.
 
    Light is the default `:root`; dark lives in the `prefers-color-scheme:
-   dark` block right after it and follows the OS/browser setting
-   automatically — no in-app toggle, nothing stored. It is NOT just the
-   light values darkened: every token, and every Watch Stats chart color,
-   was independently re-validated against its own --card, since a
-   palette that passes on one surface doesn't carry over for free (see
-   the dark block's own comment for the collision that proved it).
+   dark` block right after it and applies automatically unless overridden
+   by the Auto/Light/Dark switcher in the popup (`#themeSwitch` — see its
+   own comment below for how the override and the media query coexist).
+   Dark is NOT just the light values darkened: every token, and every
+   Watch Stats chart color, was independently re-validated against its
+   own --card, since a palette that passes on one surface doesn't carry
+   over for free (see the dark block's own comment for two different
+   collisions that proved it — one in the chart palette, one in the
+   scrollbar).
 --------------------------------------------------------------------------- */
 
 :root {
@@ -36,6 +39,13 @@
   --shadow-light-rgb: 255, 253, 240;
   --accent-glow-rgb: 140, 12, 2; /* --accent-dark's RGB */
   --gold-glow-rgb: 139, 101, 8; /* --gold's RGB */
+  /* Deliberately separate from --shadow-dark-rgb: that one goes to pure
+     black in dark mode (correct for a clay drop-shadow's recessed side),
+     which would make a scrollbar thumb built from it nearly invisible
+     against a near-black page — a real bug this caused before this
+     variable existed. This one always stays a visible, mid-tone color
+     against its own theme's surface instead. */
+  --scrollbar-thumb-rgb: 158, 122, 42;
   --shadow-dark: rgba(var(--shadow-dark-rgb), 0.28);
   --shadow-light: rgba(var(--shadow-light-rgb), 0.92);
   --text-primary: #3D0F08;
@@ -81,12 +91,26 @@
 }
 
 /* ---- Dark theme ---------------------------------------------------------
-   Follows the browser/OS's own color-scheme preference automatically —
-   no in-app toggle, no stored setting; whatever `prefers-color-scheme`
-   says is what renders. Every value below is independently re-derived
-   and re-validated against ITS OWN surface (--card here), not just the
-   light values darkened — a palette validated on one surface doesn't
-   carry over for free (confirmed the hard way: the dataviz skill's own
+   Defaults to following the browser/OS's own color-scheme preference —
+   but #themeSwitch in the popup (three pills: Auto/Light/Dark; `theme` in
+   settings, synced) can force one explicitly, via a `data-theme` attribute
+   popup.js sets on <html>. Two activation paths, same values:
+     - Auto (no override): the @media block below, gated on
+       `:root:not([data-theme])` so it only fires when nothing has
+       overridden it.
+     - Forced dark: `:root[data-theme="dark"]` right after it, which
+       applies unconditionally regardless of what the OS prefers. Forced
+       *light* needs no rule of its own — the plain :root at the top of
+       this file already is the light theme, and data-theme="light" being
+       present is exactly what makes the @media block's :not([data-theme])
+       false, so nothing overrides those defaults.
+   These two blocks' values must be kept identical — CSS has no way to
+   share a custom-property block across an @media boundary and a bare
+   selector without a preprocessor, and this project deliberately has no
+   build step. Every value in both is independently re-derived and
+   re-validated against ITS OWN surface (--card here), not just the light
+   values darkened — a palette validated on one surface doesn't carry
+   over for free (confirmed the hard way: the dataviz skill's own
    documented dark steps for this exact 8-hue categorical set FAILED
    --pairs all against this --card once actually checked, despite being
    pre-validated elsewhere — a violet/blue collision at ΔE 2.5 under
@@ -95,7 +119,7 @@
    all / --ordinal against --card (#2B1B0C) same as the light set did
    against its own surface. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg: #170D04;
     --bg-accent: #1F1206;
     --card: #2B1B0C;
@@ -103,6 +127,7 @@
     --shadow-light-rgb: 255, 244, 214;
     --accent-glow-rgb: 214, 48, 30; /* dark --accent-dark's RGB */
     --gold-glow-rgb: 217, 163, 20; /* dark --gold's RGB */
+    --scrollbar-thumb-rgb: 217, 178, 124; /* NOT --shadow-dark-rgb (pure black here) — needs to stay visible against a near-black page, so it borrows dark --text-secondary's RGB instead */
     --shadow-dark: rgba(var(--shadow-dark-rgb), 0.45);
     --shadow-light: rgba(var(--shadow-light-rgb), 0.06);
     --text-primary: #FDF3DD; /* 15.1:1 on --card, 17.4:1 on --bg */
@@ -130,6 +155,43 @@
   }
 }
 
+/* Forced dark (theme = "dark") — identical values to the @media block
+   above, applies regardless of OS preference. Keep both in sync. */
+:root[data-theme="dark"] {
+  --bg: #170D04;
+  --bg-accent: #1F1206;
+  --card: #2B1B0C;
+  --shadow-dark-rgb: 0, 0, 0;
+  --shadow-light-rgb: 255, 244, 214;
+  --accent-glow-rgb: 214, 48, 30;
+  --gold-glow-rgb: 217, 163, 20;
+  --scrollbar-thumb-rgb: 217, 178, 124;
+  --shadow-dark: rgba(var(--shadow-dark-rgb), 0.45);
+  --shadow-light: rgba(var(--shadow-light-rgb), 0.06);
+  --text-primary: #FDF3DD;
+  --text-secondary: #D9B27C;
+  --accent: #E8402C;
+  --accent-dark: #D6301E;
+  --accent-soft: #3D1710;
+  --gold: #D9A314;
+  --gold-ink: #241505;
+
+  --series-1: #4994df;
+  --series-2: #22a080;
+  --series-3: #ad911f;
+  --series-4: #22a041;
+  --series-5: #945fdd;
+  --series-6: #dd493c;
+  --series-7: #da4ea0;
+  --series-8: #c44f1c;
+  --series-other: #9C9388;
+  --series-shorts: #bc0818;
+
+  --seq-600: #2a5faa;
+  --seq-450: #4994df;
+  --seq-300: #8fc0f5;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -139,7 +201,7 @@ html {
      what that scroll (and any capped-height list below) actually renders
      with, since Chrome ignores an unscoped ::-webkit-scrollbar otherwise. */
   scrollbar-width: thin;
-  scrollbar-color: rgba(var(--shadow-dark-rgb), 0.55) transparent;
+  scrollbar-color: rgba(var(--scrollbar-thumb-rgb), 0.55) transparent;
 }
 
 body {
@@ -161,13 +223,13 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(var(--shadow-dark-rgb), 0.5);
+  background-color: rgba(var(--scrollbar-thumb-rgb), 0.5);
   background-clip: padding-box;
   border: 2px solid transparent;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(var(--shadow-dark-rgb), 0.75);
+  background-color: rgba(var(--scrollbar-thumb-rgb), 0.75);
 }
 
 /* ---- Clay primitive ------------------------------------------------------
@@ -485,6 +547,17 @@ h1 {
 .pill-choice.disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+/* Reuses .pill-choice/.pill as a standalone top-level control (not nested
+   in a card/row-group like the Shorts-redirect one is), so it needs its
+   own margin rhythm matching the space between cards instead. */
+.theme-switch {
+  margin: 0 2px 12px 2px;
+}
+.theme-switch .pill {
+  font-size: 11px;
+  padding: 7px 6px;
 }
 
 /* ---- Clay buttons (Add) ---------------------------------------------------- */
