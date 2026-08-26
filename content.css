@@ -31,17 +31,22 @@ html.focustube-hide-autoplay-toggle .ytp-autonav-toggle-button-container {
 }
 
 /* ---- Calm Mode --------------------------------------------------------
-   YouTube's UI leans on alarm-red (urgency/attention) and unread-count
-   badges (variable-reward anxiety) as deliberate engagement hooks. This
-   doesn't touch layout or remove anything functional — it mutes the
-   pervasive, ever-present red (buttons, progress bar, brand accent) to a
-   low-arousal slate blue, and hides the notification bell's unread-count
+   YouTube leans on alarm-red (urgency/attention), unread-count badges
+   (variable-reward anxiety), and hyper-saturated thumbnail imagery
+   (clickbait visual punch) as deliberate engagement hooks. This doesn't
+   touch layout or remove anything functional — it mutes the pervasive,
+   ever-present red (buttons, progress bar, brand accent) to a
+   low-arousal slate blue, hides the notification bell's unread-count
    badge (the bell itself still works, you just don't see a number
-   demanding attention). Deliberately leaves the Live badge red — that
+   demanding attention), and — deliberately the most aggressive rule in
+   this file — desaturates and hue-shifts every thumbnail image, since
+   that's the single densest concentration of attention-engineered
+   pixels in the whole UI. Deliberately leaves the Live badge red — that
    color is actually informational there (recorded vs. live), not just
    decorative, so muting it trades away clarity for no real calming
    benefit. --focustube-calm-accent is the one thing to retune if the
-   shade needs adjusting. */
+   chrome shade needs adjusting; the thumbnail filter's values sit
+   directly on the rule below it. */
 :root {
   --focustube-calm-accent: #5b7a99;
 }
@@ -104,4 +109,26 @@ html.focustube-calm-mode ytd-video-meta-block #metadata-line,
 html.focustube-calm-mode .view-count,
 html.focustube-calm-mode #count.ytd-video-view-count-renderer {
   opacity: 0.6 !important;
+}
+
+/* Thumbnails lean on the exact same urgency playbook as the UI chrome
+   above — hyper-saturated colors, blown-out contrast, alarm-red
+   circles/arrows, shocked-face close-ups — it's just baked into the
+   pixels instead of a CSS variable. Muting the chrome and leaving
+   thumbnails untouched would still leave the single biggest attention
+   hook (the thing you're actually scanning a feed *for*) at full
+   intensity, so this hits it directly: a heavy desaturation pull plus a
+   contrast/brightness pull-back knocks the clickbait punch down hard,
+   and a hue-rotate nudge shifts what's left away from alarm-red — the
+   same "recolor red urgency" move as --focustube-calm-accent above,
+   just applied to image pixels rather than a theme token. Deliberately
+   stronger than the chrome recolor (which swaps one hue for another but
+   keeps full saturation) since a thumbnail grid is a much denser wall
+   of engineered-for-attention imagery than a handful of buttons. */
+html.focustube-calm-mode ytd-thumbnail img,
+html.focustube-calm-mode yt-image img,
+html.focustube-calm-mode #thumbnail img,
+html.focustube-calm-mode ytd-moving-thumbnail-renderer img,
+html.focustube-calm-mode ytd-playlist-thumbnail img {
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) !important;
 }

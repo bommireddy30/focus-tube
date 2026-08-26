@@ -200,15 +200,15 @@ no app-shell rendering at all.
 ## Screenshots (1280x800, at least 1, up to 5)
 
 Ready in `store-assets/` as 24-bit PNG, no alpha — see that folder's
-README for details on each:
-- `popup.png`
+README for details on each. Already at the dashboard's 5-screenshot
+maximum:
+- `popup-blocking.png` — Blocking tab, Keywords and Blocked Channels
+  populated with example entries
+- `popup-stats.png` — Watch Stats tab, real category donut + upload-age
+  breakdown + last-watched card
 - `youtube-search.png`
 - `youtube-watch.png`
 - `youtube-home.png`
-
-Optional extras if you want more than the required minimum of 1: the
-Keywords card with example keywords added, or Calm Mode's recolored UI
-on a watch page (neither captured yet).
 
 ## Small promo tile (440x280)
 

@@ -4,22 +4,30 @@
    colored blobs: a soft outer drop shadow for lift, plus a soft inset
    highlight/shadow pair along the same diagonal for the rounded, inflated
    edge. Big radii everywhere, saturated pastel palette, one vivid accent
-   (coral) for anything "on"/active.
+   (crimson) for anything "on"/active.
+
+   Brand pair: #B81103 (crimson) + #FFFACD (lemon chiffon). Everything
+   below is derived from those two — surfaces lighten/deepen the yellow,
+   ink/shadow tones warm up to match, and the accent gradient runs from
+   the crimson itself down to a darker shade of it. WCAG-checked against
+   --card (#FFFACD): text-primary 15.6:1, text-secondary 5.9:1, white on
+   --accent 6.7:1, white on --accent-dark 9.7:1 — all comfortably clear
+   AA. See popup.js's SHORTS_COLOR for why the Watch Stats donut uses a
+   different, CVD-safe red rather than this exact accent hex.
 --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #eef0fb;
-  --bg-accent: #e4e9fc;
-  --card: #f8f7ff;
-  --shadow-dark: rgba(148, 142, 196, 0.35);
-  --shadow-light: rgba(255, 255, 255, 0.95);
-  --text-primary: #322f4d;
-  --text-secondary: #85819e;
-  --accent: #ff8a5c;
-  --accent-dark: #f0713f;
-  --accent-soft: #ffe3d2;
-  --mint: #59c9a5;
-  --danger: #e2665f;
+  --bg: #FFF4B8;
+  --bg-accent: #FFEFA0;
+  --card: #FFFACD;
+  --shadow-dark: rgba(158, 122, 42, 0.28);
+  --shadow-light: rgba(255, 253, 240, 0.92);
+  --text-primary: #3D0F08;
+  --text-secondary: #8A5233;
+  --accent: #B81103;
+  --accent-dark: #8C0C02;
+  --accent-soft: #FADBD3;
+  --gold: #8B6508; /* secondary accent — Keywords chips, distinct from --accent's Blocked Channels chips */
 
   /* Watch-stats categorical palette — validated (dataviz skill: fixed hue
      order, CVD-checked as a set) against this popup's own --card surface.
@@ -35,6 +43,16 @@
   --series-7: #e87ba4; /* magenta */
   --series-8: #eb6834; /* orange */
   --series-other: #a8a4bf; /* neutral gray — Uncategorized + folded tail, never a hue slot */
+
+  /* "Shorts" bucket for the donut — deliberately NOT var(--accent).
+     Re-validating the categorical set with the new #B81103 accent as a
+     9th slot (dataviz skill's validate_palette.js --pairs all) came back
+     an outright FAIL: #B81103 vs #008300 (series-4, "Gaming") sits at
+     ΔE 5.4 under deuteranopia — genuinely indistinguishable for red-green
+     colorblind users, not just a soft warning. #D63B1F (shifted toward
+     orange) is the closest red-family shade that actually clears the
+     check — see popup.js's SHORTS_COLOR. */
+  --series-shorts: #D63B1F;
 
   /* Upload-recency ordinal ramp — single hue (blue), monotone lightness,
      validated via validate_palette.js --ordinal against --card. Order
@@ -54,7 +72,7 @@ html {
      what that scroll (and any capped-height list below) actually renders
      with, since Chrome ignores an unscoped ::-webkit-scrollbar otherwise. */
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 142, 196, 0.55) transparent;
+  scrollbar-color: rgba(158, 122, 42, 0.55) transparent;
 }
 
 body {
@@ -76,13 +94,13 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 142, 196, 0.5);
+  background-color: rgba(158, 122, 42, 0.5);
   background-clip: padding-box;
   border: 2px solid transparent;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(148, 142, 196, 0.75);
+  background-color: rgba(158, 122, 42, 0.75);
 }
 
 /* ---- Clay primitive ------------------------------------------------------
@@ -93,7 +111,7 @@ body {
 .clay {
   background: var(--card);
   box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.8), inset -1px -1px 3px rgba(148, 142, 196, 0.12);
+    inset 1px 1px 2px rgba(255, 253, 240, 0.8), inset -1px -1px 3px rgba(158, 122, 42, 0.12);
 }
 
 .clay-inset {
@@ -107,7 +125,7 @@ body {
   margin-bottom: 12px;
   background: var(--card);
   box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.8), inset -1px -1px 3px rgba(148, 142, 196, 0.12);
+    inset 1px 1px 2px rgba(255, 253, 240, 0.8), inset -1px -1px 3px rgba(158, 122, 42, 0.12);
 }
 
 /* ---- Header ------------------------------------------------------------ */
@@ -135,7 +153,7 @@ header {
   justify-content: center;
   background: var(--card);
   box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.8);
+    inset 1px 1px 2px rgba(255, 253, 240, 0.8);
 }
 
 .brand-icon {
@@ -198,7 +216,7 @@ h1 {
 .toggle input:checked + .slider::before {
   transform: translateX(21px);
   background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 2px 2px 5px rgba(240, 113, 63, 0.45), -1px -1px 3px rgba(255, 255, 255, 0.6);
+  box-shadow: 2px 2px 5px rgba(140, 12, 2, 0.45), -1px -1px 3px rgba(255, 253, 240, 0.6);
 }
 
 /* ---- Stat card ------------------------------------------------------------ */
@@ -317,7 +335,7 @@ h1 {
   cursor: pointer;
 }
 .row + .row {
-  border-top: 1px solid rgba(148, 142, 196, 0.14);
+  border-top: 1px solid rgba(158, 122, 42, 0.14);
 }
 .row-group .row {
   padding: 4px 0 12px 0;
@@ -395,7 +413,7 @@ h1 {
 .pill.selected {
   color: #ffffff;
   background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.15), 3px 3px 8px rgba(240, 113, 63, 0.35);
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.15), 3px 3px 8px rgba(140, 12, 2, 0.35);
 }
 .pill-choice.disabled {
   opacity: 0.4;
@@ -412,7 +430,7 @@ h1 {
   font-weight: 800;
   color: #ffffff;
   background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 4px 4px 8px rgba(240, 113, 63, 0.35), -2px -2px 6px rgba(255, 255, 255, 0.5);
+  box-shadow: 4px 4px 8px rgba(140, 12, 2, 0.35), -2px -2px 6px rgba(255, 253, 240, 0.5);
   cursor: pointer;
   transition: box-shadow 0.1s, transform 0.1s;
 }
@@ -461,9 +479,9 @@ h1 {
   padding: 6px 6px 6px 14px;
   font-size: 12px;
   font-weight: 700;
-  background: var(--mint);
+  background: var(--gold);
   color: #ffffff;
-  box-shadow: 3px 3px 7px rgba(89, 201, 165, 0.4), -2px -2px 5px rgba(255, 255, 255, 0.4);
+  box-shadow: 3px 3px 7px rgba(139, 101, 8, 0.4), -2px -2px 5px rgba(255, 253, 240, 0.4);
 }
 .keyword-chip button {
   border: none;
@@ -474,7 +492,7 @@ h1 {
   line-height: 1;
   cursor: pointer;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 253, 240, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -486,7 +504,7 @@ h1 {
    substring keyword match at a glance. */
 .channel-chip {
   background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 3px 3px 7px rgba(240, 113, 63, 0.35), -2px -2px 5px rgba(255, 255, 255, 0.4);
+  box-shadow: 3px 3px 7px rgba(140, 12, 2, 0.35), -2px -2px 5px rgba(255, 253, 240, 0.4);
 }
 
 /* ---- Suggested keywords ----------------------------------------------- */
@@ -515,12 +533,12 @@ h1 {
   margin-bottom: 4px;
 }
 .suggested-chip {
-  border: 1.5px solid rgba(89, 201, 165, 0.5);
+  border: 1.5px solid rgba(139, 101, 8, 0.5);
   border-radius: 999px;
   padding: 5px 12px;
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--mint);
+  color: var(--gold);
   background: var(--card);
   cursor: pointer;
   box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
@@ -529,8 +547,8 @@ h1 {
 .suggested-chip.added {
   border-color: transparent;
   color: #ffffff;
-  background: var(--mint);
-  box-shadow: 2px 2px 6px rgba(89, 201, 165, 0.4);
+  background: var(--gold);
+  box-shadow: 2px 2px 6px rgba(139, 101, 8, 0.4);
 }
 
 /* ---- Footer ------------------------------------------------------------------ */
@@ -593,7 +611,7 @@ footer {
 .tab-btn.selected {
   color: #ffffff;
   background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 3px 3px 8px rgba(240, 113, 63, 0.35);
+  box-shadow: 3px 3px 8px rgba(140, 12, 2, 0.35);
 }
 .tab-panel.hidden {
   display: none;

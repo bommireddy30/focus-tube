@@ -57,7 +57,15 @@ accounts, no tiers, no daily caps. Everything is free.
   elements especially) may need adjustment if YouTube's markup doesn't
   match — confirmed via live DevTools testing that the recoloring and
   progress-bar override work; the notification-badge/subscribe-button
-  selectors are still unconfirmed as of this writing.
+  selectors are still unconfirmed as of this writing. The most aggressive
+  rule in Calm Mode targets **thumbnail images themselves**, not just UI
+  chrome — `filter: saturate(0.3) contrast(0.85) brightness(0.96)
+  hue-rotate(-12deg)` on every `ytd-thumbnail`/`yt-image`/`#thumbnail`
+  image, since thumbnails lean on the exact same hyper-saturated,
+  high-contrast "clickbait" visual design as a deliberate attention hook,
+  and muting the chrome while leaving the thumbnail grid at full
+  intensity would miss the single densest concentration of
+  attention-engineered pixels in the whole UI.
 - **Keywords** — hides any video whose **title, channel name, or visible
   description snippet** matches a word or phrase you've added.
   Case-insensitive, comma-separated for several at once. A "Match whole
@@ -337,11 +345,14 @@ Still needs a human before submitting:
 - Confirm GitHub Pages is actually live for the privacy policy URL
   (repo Settings → Pages → Deploy from branch → `main` → `/docs`), if
   using that fallback instead of the raw GitHub URL.
-- Fresh screenshots (see the list in `STORE_LISTING.md`) reflecting the
-  current popup — Watch Stats, Blocked Channels, and the collapsible
-  section redesign didn't exist when the current ones were captured.
-  These need a signed-in Chrome session and can't be generated from
-  this repo alone.
+- ~~Fresh screenshots~~ Done — `store-assets/popup-blocking.png` and
+  `popup-stats.png` replace the old single `popup.png`, captured live
+  from the real extension with seeded demo data (see
+  `store-assets/README.md`'s "Regenerating" section for how, including
+  the Chrome-vs-Edge `--load-extension` policy gotcha on a managed
+  machine). The three `youtube-*.png` screenshots were left as-is —
+  the Shorts/Mixes/Autoplay blocking behavior they show didn't change
+  this round, only the popup did.
 - A quick manual check that Calm Mode's notification-badge/subscribe-
   button selectors still match current YouTube markup (see "Known
   limitations" above) before flipping it on by default for real users.

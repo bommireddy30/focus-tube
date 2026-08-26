@@ -60,17 +60,17 @@ const OTHER_COLOR = "var(--series-other)";
 const OTHER_CATEGORY_LABEL = "Other";
 const PIE_MAX_SLICES = 6; // beyond this, the smallest remainder folds into "Other" (dataviz: pie is legible only to ~6 segments)
 
-// "Shorts" gets the app's own coral accent — a 9th, deliberately-chosen
-// slot outside the 8-hue categorical set, not a hash fallback. This is
-// the one category this whole extension is about, so it's worth a
-// guaranteed, on-brand color rather than leaving it to hash luck; the
-// same coral already means "this is what Focus Tube blocks" everywhere
-// else in this popup (toggles, channel-block chips). Re-validated as a
-// 9th color via the dataviz skill's validate_palette.js --pairs all
-// (pie slice adjacency is rank-sorted, not fixed order, so every pair
-// can end up neighboring) — it doesn't worsen the palette's existing
-// worst-case CVD pair.
-const SHORTS_COLOR = "var(--accent)";
+// "Shorts" gets a dedicated 9th slot rather than a hash fallback, since
+// it's the one category this whole extension is about. Deliberately
+// NOT var(--accent): validating the current brand accent (#B81103) as a
+// 9th categorical color via the dataviz skill's validate_palette.js
+// --pairs all came back FAIL — it collides with series-4 (green,
+// "Gaming") under deuteranopia, ΔE 5.4, well below even the floor band.
+// var(--series-shorts) in popup.css is the closest red-family shade that
+// actually clears the check, kept as a separate token specifically so
+// this chart color and the UI accent color can diverge safely if the
+// brand accent ever changes again.
+const SHORTS_COLOR = "var(--series-shorts)";
 
 function hashString(str) {
   let hash = 0;
