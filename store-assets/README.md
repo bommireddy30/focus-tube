@@ -40,18 +40,19 @@ the dashboard requires.
   pills (Free / Private / No account / No ads), brand gradient
   background.
 
-The app icon (`icons/icon*.png`) has since been redrawn from scratch as
-a flat crimson/lemon-chiffon "blocked" glyph, replacing the old
-purple/blue cursor-and-clock design — full brand consistency, no
-recoloring artifacts, since it's a clean vector re-render rather than a
-recolored raster. **New inconsistency this creates**: `promo-small.png`
-and `promo-marquee.png` below still embed the *old* icon, since they
-were composited before the icon changed — they need re-rendering from
-the same template (see "Regenerating" below) to pick up the new one.
-The two branded popup screenshots (`popup-blocking.png`, `popup-stats.png`)
-also show the old icon in the popup header for the same reason.
+The app icon (`icons/icon*.png`) was redrawn from scratch as a flat
+crimson/lemon-chiffon "blocked" glyph, replacing the old purple/blue
+cursor-and-clock design — full brand consistency, no recoloring
+artifacts, since it's a clean vector re-render rather than a recolored
+raster. `promo-small.png`, `promo-marquee.png`, `popup-blocking.png`,
+and `popup-stats.png` have all been regenerated to match (see
+"Regenerating" below) — the two popup screenshots also happened to pick
+up the Auto/Light/Dark theme switcher along the way, since that UI
+shipped after these were last captured and a fresh capture reflects
+whatever the popup currently looks like. The three `youtube-*.png`
+screenshots don't embed the icon and are unaffected.
 
-All seven are otherwise still ready to upload as-is.
+All seven are ready to upload as-is.
 
 ## Regenerating
 
