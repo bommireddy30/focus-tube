@@ -40,7 +40,7 @@
   };
 
   function defaultStats() {
-    return { dailyCount: 0, dailyDate: getLocalDateString() };
+    return { blockedCount: 0 };
   }
 
   let settings = { ...DEFAULT_SETTINGS };
@@ -96,14 +96,6 @@
       "focustube-calm-mode",
       effectivelyEnabled() && !!settings.calmMode
     );
-  }
-
-  function getLocalDateString(d) {
-    d = d || new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
   }
 
   // ---- Surfaces --------------------------------------------------------
@@ -1024,15 +1016,6 @@
 
   // ---- Stats (local, per device — badge only, informational, no cap) ------
 
-  function ensureDailyRollover() {
-    const today = getLocalDateString();
-    if (stats.dailyDate !== today) {
-      stats.dailyDate = today;
-      stats.dailyCount = 0;
-      persistStats();
-    }
-  }
-
   function persistStats() {
     try {
       chrome.storage.local.set({ [STATS_KEY]: stats });
@@ -1049,7 +1032,6 @@
         }
         chrome.storage.local.get(STATS_KEY, (statsResult) => {
           stats = { ...defaultStats(), ...(statsResult && statsResult[STATS_KEY]) };
-          ensureDailyRollover();
           callback();
         });
       });
@@ -1059,10 +1041,9 @@
   }
 
   function runAndPersist() {
-    ensureDailyRollover();
     const newlyHidden = runAllPasses();
     if (newlyHidden > 0) {
-      stats.dailyCount += newlyHidden;
+      stats.blockedCount += newlyHidden;
       persistStats();
     }
   }

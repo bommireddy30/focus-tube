@@ -33,10 +33,10 @@ Focus Tube's own servers, because it has none):
   stored via the browser's `storage.sync` API, which is the same
   mechanism the browser itself uses to sync your other extension settings
   across your signed-in devices.
-- **A daily blocked-video count** — stored via `storage.local` (this
-  device only), used solely to show the "blocked today" number in the
-  popup and the toolbar badge. It resets automatically at local midnight
-  and is never read by anything outside the extension.
+- **A lifetime blocked-video count** — stored via `storage.local` (this
+  device only), used solely to show the "blocked total" number in the
+  popup and the toolbar badge. It never resets on its own and is never
+  read by anything outside the extension.
 - **Watch Stats** (see below) — stored via `storage.local` (this device
   only).
 

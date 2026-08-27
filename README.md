@@ -213,12 +213,12 @@ everything the moment you switch it off — it doesn't just pause future
 hiding, it walks the page and un-hides everything already blocked. Flip it
 back on and the next pass re-hides normally.
 
-A toolbar badge shows today's running block count on the extension icon
+A toolbar badge shows a running lifetime block count on the extension icon
 itself, updated live by a background service worker (`background.js`)
 that watches the same stats content scripts write to — content scripts
 can't set the badge directly, only extension pages can. This is purely
-informational (no cap tied to it) and resets automatically at local
-midnight.
+informational (no cap tied to it) and never resets on its own — the only
+way to zero it out is removing the extension.
 
 ## Design — Claymorphism
 

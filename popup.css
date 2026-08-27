@@ -231,6 +231,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(var(--scrollbar-thumb-rgb), 0.75);
 }
+::-webkit-scrollbar-button {
+  /* Unstyled, this renders as the classic native up/down arrow buttons
+     (visible on the Keywords/Blocked Channels lists' own scrollbars) even
+     though the track/thumb above are fully re-themed — Chromium doesn't
+     drop them just because the thumb/track are customized. */
+  display: none;
+  width: 0;
+  height: 0;
+}
 
 /* ---- Clay primitive ------------------------------------------------------
    Raised: soft dark shadow bottom-right + soft light highlight top-left,
@@ -611,6 +620,17 @@ h1 {
   max-height: 108px;
   overflow-y: auto;
   padding-right: 2px; /* keeps chips clear of the scrollbar thumb */
+  /* scrollbar-width/-color are inherited from html (needed there so the
+     popup's own body-level overflow gets themed at all — Chrome ignores
+     an unscoped ::-webkit-scrollbar otherwise), but inheriting a non-auto
+     value onto THIS element makes Chromium use its native "thin" scrollbar
+     renderer instead of the ::-webkit-scrollbar-* pseudo-elements below —
+     and that native renderer still draws classic up/down step buttons on
+     Windows, which nothing in ::-webkit-scrollbar-button can suppress once
+     it's in control. Resetting back to auto here hands rendering back to
+     the pseudo-elements, which do respect scrollbar-button: none. */
+  scrollbar-width: auto;
+  scrollbar-color: auto;
 }
 .keyword-chip {
   display: inline-flex;

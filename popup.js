@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS = {
 };
 
 function defaultStats() {
-  return { dailyCount: 0, dailyDate: "" };
+  return { blockedCount: 0 };
 }
 
 function defaultCategoryStats() {
@@ -429,7 +429,7 @@ el.channelInput.addEventListener("keydown", (e) => {
 });
 
 function renderStats() {
-  el.countNumber.textContent = (currentStats.dailyCount || 0).toString();
+  el.countNumber.textContent = (currentStats.blockedCount || 0).toString();
 }
 
 // ---- Tabs ------------------------------------------------------------------

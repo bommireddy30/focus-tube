@@ -124,7 +124,7 @@ expect one, even though the data never leaves the device.
 **`storage`**
 ```
 Used to save the user's own toggle settings and keyword list
-(chrome.storage.sync); a local daily blocked-count used only for the
+(chrome.storage.sync); a local lifetime blocked-count used only for the
 in-popup/badge counter (chrome.storage.local); and, for Watch Stats,
 each video's YouTube category and watch-time totals
 (chrome.storage.local). No data leaves the browser.

@@ -3,7 +3,7 @@
 // Content scripts cannot call chrome.action.setBadgeText themselves —
 // that API is only available to extension pages (background, popup), not
 // content scripts. This worker's only job is to watch the stats content
-// scripts write to chrome.storage.local and mirror dailyCount onto the
+// scripts write to chrome.storage.local and mirror blockedCount onto the
 // toolbar icon badge whenever it changes, regardless of which YouTube tab
 // caused the change.
 
@@ -16,7 +16,7 @@ function formatBadgeText(count) {
 }
 
 function updateBadge(stats) {
-  const count = (stats && stats.dailyCount) || 0;
+  const count = (stats && stats.blockedCount) || 0;
   chrome.action.setBadgeText({ text: formatBadgeText(count) });
   chrome.action.setBadgeBackgroundColor({ color: "#ff8a5c" });
   chrome.action.setBadgeTextColor

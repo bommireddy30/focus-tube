@@ -40,17 +40,18 @@ the dashboard requires.
   pills (Free / Private / No account / No ads), brand gradient
   background.
 
-All seven are ready to upload for submission as-is.
+The app icon (`icons/icon*.png`) has since been redrawn from scratch as
+a flat crimson/lemon-chiffon "blocked" glyph, replacing the old
+purple/blue cursor-and-clock design — full brand consistency, no
+recoloring artifacts, since it's a clean vector re-render rather than a
+recolored raster. **New inconsistency this creates**: `promo-small.png`
+and `promo-marquee.png` below still embed the *old* icon, since they
+were composited before the icon changed — they need re-rendering from
+the same template (see "Regenerating" below) to pick up the new one.
+The two branded popup screenshots (`popup-blocking.png`, `popup-stats.png`)
+also show the old icon in the popup header for the same reason.
 
-**A known inconsistency, left as-is deliberately**: the app icon
-(`icons/icon*.png`, embedded in both promo tiles) is still the original
-purple/blue design — recoloring a raster icon safely (without producing
-ugly artifacts on its gradients/anti-aliased edges) isn't something to
-attempt without real image-editing tools, so it was left untouched
-while everything else moved to the new brand pair. It reads fine as a
-complementary accent against the new warm background rather than
-looking broken, but a from-scratch icon redesign in the new colors
-would be the actual fix if full brand consistency matters.
+All seven are otherwise still ready to upload as-is.
 
 ## Regenerating
 
