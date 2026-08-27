@@ -2,8 +2,11 @@
 
 Removes YouTube Shorts everywhere — Home, Search, Subscriptions, History,
 channel pages, and up-next — plus lets you block any video by keyword.
-Runs entirely client-side — no data collection, no network calls, no
-accounts, no tiers, no daily caps. Everything is free.
+Runs entirely client-side, with no account, no tiers, and no daily caps.
+Everything is free. Talks to no third party and no server it controls —
+the one exception is Watch Stats, which occasionally makes a same-origin
+request back to youtube.com itself to read a video's category; see
+`PRIVACY.md` for details.
 
 ## Categories (mirrors the popup UI)
 
@@ -55,9 +58,18 @@ accounts, no tiers, no daily caps. Everything is free.
   at the top of `content.css`. Like the Autoplay/Shorts selectors, some of
   the class-name guesses here (the notification badge and hover-preview
   elements especially) may need adjustment if YouTube's markup doesn't
-  match — confirmed via live DevTools testing that the recoloring and
-  progress-bar override work; the notification-badge/subscribe-button
-  selectors are still unconfirmed as of this writing. The most aggressive
+  match — confirmed via live testing (Playwright driving the real
+  unpacked extension) that the recoloring and progress-bar override work.
+  The subscribe-button recolor was confirmed live too, and turned out to
+  be broken on channel pages: YouTube's newer channel-header component
+  doesn't use `ytd-subscribe-button-renderer` at all, so that selector
+  only ever matched on watch pages. Fixed with an added aria-label-based
+  selector (`button[aria-label^="Subscribe"]`), which is also more
+  resilient than the class-based approach since it doesn't depend on
+  YouTube's frequently-churning generated class names. The
+  notification-badge selectors are still unconfirmed as of this writing —
+  untestable signed-out, since the unread-count badge only renders for a
+  signed-in session this repo doesn't have. The most aggressive
   rule in Calm Mode targets **thumbnail images themselves**, not just UI
   chrome — `filter: saturate(0.3) contrast(0.85) brightness(0.96)
   hue-rotate(-12deg)` on every `ytd-thumbnail`/`yt-image`/`#thumbnail`

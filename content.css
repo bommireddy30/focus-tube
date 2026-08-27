@@ -63,8 +63,16 @@ html.focustube-calm-mode {
 
 /* Direct overrides for specific elements, in case they don't actually
    consume the variables above (or use inline colors instead) — belt-and-
-   braces the same way the variable override is. */
+   braces the same way the variable override is. `ytd-subscribe-button-renderer
+   button` covers the watch-page subscribe button (confirmed live); it does
+   nothing on channel pages, though, since that header is a newer
+   `yt-page-header-view-model` component with no such renderer wrapper —
+   `button[aria-label^="Subscribe"]` is the aria-label-based selector that
+   catches that case too (confirmed live on a channel page), since aria
+   labels are a much more stable target than YouTube's generated,
+   frequently-churning button-shape class names. */
 html.focustube-calm-mode ytd-subscribe-button-renderer button,
+html.focustube-calm-mode button[aria-label^="Subscribe"],
 html.focustube-calm-mode .yt-spec-button-shape-next--call-to-action,
 html.focustube-calm-mode .ytp-play-progress,
 html.focustube-calm-mode .ytp-swatch-background-color {
