@@ -39,10 +39,17 @@ request back to youtube.com itself to read a video's category; see
   on from the UI. Unmetered, like the nav/chip passes, since it's removing
   a UI control rather than blocking content.
 - **Calm Mode** — recolors YouTube's own persistent red UI accents
-  (subscribe button, video progress bar, brand CSS custom properties) to
+  (subscribe button, video progress bar, brand CSS custom properties, and
+  the YouTube wordmark's play-button icon in the masthead itself) to
   a muted slate blue, hides the notification bell's unread-count badge
   (the bell itself still works), and disables the thumbnail hover-autoplay
-  preview on Home/search. This targets YouTube's own engagement-hook
+  preview on Home/search. The logo's red is baked directly into its own
+  SVG fill rather than one of YouTube's CSS custom properties, so it
+  needs a `filter` on its container (`ytd-logo`/`#logo-icon`, with an
+  `aria-label="YouTube Home"` fallback) rather than the variable override
+  that handles the rest of the chrome — same
+  saturate/contrast/brightness/hue-rotate values as the rest of Calm
+  Mode's pixel-level treatment, for one consistent look. This targets YouTube's own engagement-hook
   design, not content — red-for-urgency and unread-count badges are
   deliberate attention triggers, and the hover preview is designed to
   pull you into a video before you've clicked anything. Deliberately
@@ -72,12 +79,37 @@ request back to youtube.com itself to read a video's category; see
   signed-in session this repo doesn't have. The most aggressive
   rule in Calm Mode targets **thumbnail images themselves**, not just UI
   chrome — `filter: saturate(0.3) contrast(0.85) brightness(0.96)
-  hue-rotate(-12deg)` on every `ytd-thumbnail`/`yt-image`/`#thumbnail`
-  image, since thumbnails lean on the exact same hyper-saturated,
+  hue-rotate(-12deg) blur(4.5px)` plus `transform: scale(1.16)
+  skewX(-8deg) skewY(3deg)`, since thumbnails lean on the exact same hyper-saturated,
   high-contrast "clickbait" visual design as a deliberate attention hook,
   and muting the chrome while leaving the thumbnail grid at full
   intensity would miss the single densest concentration of
-  attention-engineered pixels in the whole UI.
+  attention-engineered pixels in the whole UI. The blur+skew combo is a
+  deliberately mild addition on top of the existing recolor — it softens
+  *and warps* the shocked-face/big-arrow composition that desaturation
+  alone leaves fully legible and easy to gloss past, while titles and
+  channel names (real text, not part of the image) stay completely
+  readable. `scale(1.16)` rides along with the skew so the image still
+  fully covers its box afterward — skewing alone would pull one edge
+  inward and reveal a sliver of the container's background through the
+  gap; the container's `overflow: hidden` clips whatever the scale pushes
+  past its edges, same as YouTube's own native hover-zoom. Enforced from
+  `content.js`'s `applyThumbnailBlur()` (inline styles via `deepQueryAll`,
+  plus JS `mouseenter`/`mouseleave` listeners that drop both the filter
+  and the transform back to normal for the lift-on-hover affordance), not
+  `content.css` alone — a plain stylesheet selector can only reach the
+  light DOM, and YouTube's newer "view model" card components
+  (`yt-lockup-view-model` and friends) render their thumbnail `<img>`
+  inside a shadow root, invisible to a page-level stylesheet no matter how
+  the selector is written. content.css keeps a matching filter/transform/
+  `:hover` rule as a belt-and-braces for the light-DOM case (paints
+  instantly, no waiting on JS), but the JS pass is what actually reaches
+  shadow-rendered cards. Matched by the thumbnail CDN's URL pattern
+  (`i.ytimg.com/vi/...`) rather than a wrapper tag/class name, the same
+  "URL is sturdier than class names" reasoning as
+  `GENERIC_SHORTS_LINK`/`MIX_LINK_SELECTOR` elsewhere in `content.js` —
+  and it naturally leaves channel avatars alone, since those come from a
+  different host (`yt3.ggpht.com`/`yt3.googleusercontent.com`).
 - **Keywords** — hides any video whose **title, channel name, or visible
   description snippet** matches a word or phrase you've added.
   Case-insensitive, comma-separated for several at once. A "Match whole

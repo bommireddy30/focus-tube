@@ -259,6 +259,25 @@
     }
   }
 
+  // Safety net against blanking the actual video player. findAndHideContainer's
+  // climbToCard fallback (below) can walk several parent levels up from a
+  // matched Shorts/Mix link with no tag-based ceiling — on a /watch page, a
+  // link that isn't wrapped in one of CONTAINER_TAG_GUESSES (e.g. a "Shorts
+  // remixing this video" shelf or a Mix queue entry using a layout this
+  // extension doesn't specifically recognize) can cause that climb to land on
+  // a shared ancestor that also happens to wrap the player — hiding the
+  // player along with it. Confirmed report: video plays with audio but
+  // nothing renders on screen. Checked centrally in hideEl() so it protects
+  // every hide path, not just the one that's misbehaved so far.
+  function containsMainPlayer(el) {
+    if (!el || !el.querySelector) return false;
+    try {
+      return !!el.querySelector("#movie_player, .html5-video-player, #player-container-outer");
+    } catch (e) {
+      return false;
+    }
+  }
+
   // `reason` (optional) is stored as the attribute's value instead of a
   // plain "true" flag, so a specific category can later reveal just its
   // own hides via revealByReason() below without disturbing anything
@@ -269,6 +288,7 @@
   function hideEl(el, reason) {
     if (!el || !el.style) return false;
     if (el.getAttribute && el.getAttribute("data-focustube-hidden")) return false;
+    if (containsMainPlayer(el)) return false;
     el.style.setProperty("display", "none", "important");
     if (el.setAttribute) el.setAttribute("data-focustube-hidden", reason || "true");
     return true;
@@ -427,6 +447,73 @@
     }
   }
 
+  // Part of Calm Mode: softly blurs AND geometrically warps thumbnail
+  // images so they're still identifiable at a glance but lose the
+  // clickbait punch that hooks idle scrolling — the skew/scale on top of
+  // the blur makes faces and expressions read as "off" rather than just
+  // "soft," which is harder for a scrolling eye to gloss past as "basically
+  // fine." content.css carries a matching filter/transform/:hover rule as a
+  // belt-and-braces (paints instantly, no waiting on JS), but a plain
+  // stylesheet selector can only reach the light DOM — YouTube's newer
+  // "view model" card components (yt-lockup-view-model and friends, the
+  // same shadow-DOM architecture called out at the top of this file) render
+  // their thumbnail <img> inside a shadow root, which a page-level
+  // stylesheet cannot pierce by design, no matter how the selector is
+  // written. This is why it silently didn't apply on cards using that
+  // newer layout. deepQueryAll CAN reach in there (same mechanism the
+  // hiding passes already rely on), so this JS pass is the actual
+  // enforcement for those cards; content.css's rule now only matters as a
+  // flash-of-undistorted-thumbnail guard for the light-DOM case.
+  //
+  // The scale(1.08) accompanying the skew is deliberate, not decorative —
+  // skewing alone pulls one edge of the image inward and can reveal the
+  // container's background/rounded-corner clipping through a sliver of
+  // now-empty space at the opposite edge; scaling the image up first
+  // guarantees it still fully covers its box after the skew, the same way
+  // YouTube's own native hover-zoom relies on the thumbnail's `overflow:
+  // hidden` box (not the image itself) as the visible boundary.
+  //
+  // Matched by the thumbnail CDN's own URL pattern (i.ytimg.com/vi/...)
+  // rather than any wrapper tag/class name — that survives YouTube's
+  // markup churn far better than a class guess (same reasoning as
+  // GENERIC_SHORTS_LINK/MIX_LINK_SELECTOR above), and it naturally leaves
+  // channel avatars alone, since those are served from a different host
+  // (yt3.ggpht.com / yt3.googleusercontent.com), not i.ytimg.com.
+  const THUMBNAIL_IMG_SELECTOR = "img[src*='ytimg.com/vi/'], img[srcset*='ytimg.com/vi/']";
+  const THUMBNAIL_DISTORT_FILTER = "saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(4.5px)";
+  const THUMBNAIL_NORMAL_FILTER = "saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg)";
+  const THUMBNAIL_DISTORT_TRANSFORM = "scale(1.16) skewX(-8deg) skewY(3deg)";
+  const THUMBNAIL_NORMAL_TRANSFORM = "none";
+  const THUMBNAIL_TRANSITION = "filter 0.15s ease-out, transform 0.15s ease-out";
+
+  function applyThumbnailBlur() {
+    const active = effectivelyEnabled() && !!settings.calmMode;
+    for (const img of deepQueryAll(THUMBNAIL_IMG_SELECTOR)) {
+      if (!active) {
+        if (img.dataset && img.dataset.focustubeBlurred) {
+          img.style.removeProperty("filter");
+          img.style.removeProperty("transform");
+          img.style.removeProperty("transition");
+          delete img.dataset.focustubeBlurred;
+        }
+        continue;
+      }
+      if (img.dataset && img.dataset.focustubeBlurred) continue; // already wired up
+      img.style.setProperty("filter", THUMBNAIL_DISTORT_FILTER, "important");
+      img.style.setProperty("transform", THUMBNAIL_DISTORT_TRANSFORM, "important");
+      img.style.setProperty("transition", THUMBNAIL_TRANSITION, "important");
+      img.addEventListener("mouseenter", () => {
+        img.style.setProperty("filter", THUMBNAIL_NORMAL_FILTER, "important");
+        img.style.setProperty("transform", THUMBNAIL_NORMAL_TRANSFORM, "important");
+      });
+      img.addEventListener("mouseleave", () => {
+        img.style.setProperty("filter", THUMBNAIL_DISTORT_FILTER, "important");
+        img.style.setProperty("transform", THUMBNAIL_DISTORT_TRANSFORM, "important");
+      });
+      if (img.dataset) img.dataset.focustubeBlurred = "1";
+    }
+  }
+
   // Enumerates VIDEO_ITEM_SELECTORS directly rather than anchoring on a
   // "#video-title" sub-element first — that anchor approach silently
   // found zero cards on layouts where the title element uses a different
@@ -574,6 +661,11 @@
     syncActiveClass();
     syncAutoplayHideClass();
     syncCalmModeClass();
+    // Same reasoning as the sync*Class calls above — runs ahead of the
+    // effectivelyEnabled() early-return below so toggling Calm Mode (or the
+    // master switch) off actually un-blurs already-styled thumbnails
+    // instead of just pausing future ones.
+    applyThumbnailBlur();
     // Independent of the blocking master toggle below — watch-time
     // tracking is an analytics feature, not a hiding pass, and stays live
     // even while blocking itself is switched off.

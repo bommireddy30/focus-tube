@@ -3,9 +3,20 @@
    first pass. Scoped behind html.focustube-active (toggled by content.js
    itself, in sync with the enabled setting) — a bare unconditional rule
    here would keep hiding these regardless of the on/off toggle, since a
-   static stylesheet has no way to react to chrome.storage on its own. */
+   static stylesheet has no way to react to chrome.storage on its own.
+
+   [is-shorts] is deliberately tag-scoped to the known feed-item renderers
+   rather than a bare attribute selector — a bare `[is-shorts]` matches
+   ANY element carrying that attribute, and if YouTube ever reflects it
+   onto something broader than a single video card (e.g. a wrapper that
+   also contains the actual player on a /watch page), this rule would
+   blank the whole thing instead of just a Shorts card. Confirmed report:
+   video plays with audio but nothing renders on screen. */
 html.focustube-active ytd-reel-shelf-renderer,
-html.focustube-active [is-shorts] {
+html.focustube-active ytd-rich-item-renderer[is-shorts],
+html.focustube-active ytd-video-renderer[is-shorts],
+html.focustube-active ytd-grid-video-renderer[is-shorts],
+html.focustube-active ytd-compact-video-renderer[is-shorts] {
   display: none !important;
 }
 
@@ -79,6 +90,33 @@ html.focustube-calm-mode .ytp-swatch-background-color {
   background-color: var(--focustube-calm-accent) !important;
 }
 
+/* The YouTube wordmark's play-button icon is the single most persistent
+   red-urgency element on the page — present in the masthead on every
+   surface, not just watch pages — and unlike the buttons/progress bar
+   above, its red comes baked directly into the logo SVG's own fill, not
+   one of YouTube's CSS custom properties, so the variable override at the
+   top of this file doesn't touch it. `filter` on the container applies to
+   the whole rendered subtree (same reasoning as the thumbnail treatment
+   below), so this doesn't need to know whether the logo is a raw <svg>,
+   an <img>, or wrapped in a few layers of YouTube's own elements — just
+   whichever wrapper actually exists gets caught. Same
+   saturate/contrast/brightness/hue-rotate values as the rest of Calm
+   Mode's pixel-level (not CSS-variable) red treatment, for one consistent
+   "muted" look across chrome, thumbnails, and the logo. `ytd-logo` and
+   `#logo-icon` are the standard wrapper tags; the aria-label selector is
+   a fallback for whatever layout doesn't use them, same "aria is more
+   stable than churning class names" reasoning as the Subscribe button
+   above. Deliberately no blur here — a soft-focus wordmark reads as
+   broken branding, not calm; the ask was to mute the color, not the
+   shape. */
+html.focustube-calm-mode ytd-logo,
+html.focustube-calm-mode #logo-icon,
+html.focustube-calm-mode ytd-topbar-logo-renderer,
+html.focustube-calm-mode a[aria-label="YouTube Home"],
+html.focustube-calm-mode a[aria-label*="YouTube Home" i] {
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) !important;
+}
+
 /* Notification bell's unread-count badge — hides the number, not the
    bell/button itself. Several class guesses since the exact one varies
    by YouTube's current build. */
@@ -132,11 +170,48 @@ html.focustube-calm-mode #count.ytd-video-view-count-renderer {
    just applied to image pixels rather than a theme token. Deliberately
    stronger than the chrome recolor (which swaps one hue for another but
    keeps full saturation) since a thumbnail grid is a much denser wall
-   of engineered-for-attention imagery than a handful of buttons. */
+   of engineered-for-attention imagery than a handful of buttons.
+
+   blur(4.5px) plus a skew/scale on top of that softens (and warps) the
+   shocked-face/big-arrow/bold-text composition itself, not just its color
+   — that composition is what actually hooks a scrolling eye, and
+   desaturating it alone still leaves the shapes fully legible, undistorted,
+   and easy to gloss past as "basically fine." Titles and channel names
+   (real text, not baked into the image) stay fully readable at these
+   values, and the thumbnail is still identifiable at a glance — this adds
+   friction to idle scrolling, it isn't meant to hide what a video is.
+   scale(1.16) rides along with the skew so the image still fully covers
+   its box afterward —
+   skewing alone would pull one edge inward and reveal a sliver of the
+   container's background through the gap; the container's own overflow
+   clips whatever the scale pushes past its edges, the same boundary
+   YouTube's native hover-zoom already relies on. The :hover rule below
+   lifts the blur and the warp (not the desaturation) on deliberate intent
+   — you moved the mouse there on purpose — so a considered choice to look
+   closer isn't fought, only the passive doom-scroll is. */
+html.focustube-calm-mode ytd-thumbnail,
+html.focustube-calm-mode yt-image,
+html.focustube-calm-mode #thumbnail,
+html.focustube-calm-mode ytd-moving-thumbnail-renderer,
+html.focustube-calm-mode ytd-playlist-thumbnail {
+  overflow: hidden !important;
+}
+
 html.focustube-calm-mode ytd-thumbnail img,
 html.focustube-calm-mode yt-image img,
 html.focustube-calm-mode #thumbnail img,
 html.focustube-calm-mode ytd-moving-thumbnail-renderer img,
 html.focustube-calm-mode ytd-playlist-thumbnail img {
-  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) !important;
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(4.5px) !important;
+  transform: scale(1.16) skewX(-8deg) skewY(3deg) !important;
+  transition: filter 0.15s ease-out, transform 0.15s ease-out !important;
+}
+
+html.focustube-calm-mode ytd-thumbnail:hover img,
+html.focustube-calm-mode yt-image:hover img,
+html.focustube-calm-mode #thumbnail:hover img,
+html.focustube-calm-mode ytd-moving-thumbnail-renderer:hover img,
+html.focustube-calm-mode ytd-playlist-thumbnail:hover img {
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(0) !important;
+  transform: none !important;
 }

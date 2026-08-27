@@ -60,9 +60,11 @@ WHAT IT BLOCKS
 • Mixes — YouTube's auto-generated "Mixes for you" radio playlists.
 • Autoplay — turns off the autoplay toggle on watch pages and removes
   it from the player controls.
-• Calm Mode — mutes YouTube's red urgency accents to a neutral color,
-  hides the unread-notification badge, and stops thumbnail
-  hover-preview autoplay.
+• Calm Mode — mutes YouTube's red urgency accents (including the YouTube
+  logo itself) to a neutral color, hides the unread-notification badge,
+  softly blurs and warps thumbnails to take the edge off clickbait
+  imagery (hover to see one clearly), and stops thumbnail hover-preview
+  autoplay.
 • Keywords — hide any video by title, channel name, or description
   text you choose, with an optional whole-word-only match mode.
 • Watch Stats — a pie chart of how many minutes you watch per YouTube
