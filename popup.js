@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   keywords: [],
   matchWholeWord: false,
   blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
+  autoBlockAfterWatch: false, // once 60% of a video has been watched, block its channel AND its name everywhere else (see blockedNames)
+  blockedNames: [], // [{ name, expiresAt }] — auto-added only; matches any video mentioning that name, any channel
   theme: "system", // "system" | "light" | "dark" — see applyTheme() in popup.js and the dark-theme comment in popup.css
 };
 
@@ -24,7 +26,7 @@ function defaultStats() {
 }
 
 function defaultCategoryStats() {
-  return { totals: {}, recencyTotals: {}, lastVideo: null };
+  return { totals: {}, recencyTotals: {}, dailyTotals: {}, lastVideo: null };
 }
 
 // content.js now classifies purely from YouTube's own official video
@@ -141,6 +143,7 @@ const TOGGLE_FIELDS = [
   "disableAutoplay",
   "calmMode",
   "matchWholeWord",
+  "autoBlockAfterWatch",
 ];
 
 // The fields inside the "What to block" disclosure specifically (a subset
@@ -180,6 +183,8 @@ const el = {
   channelInput: document.getElementById("channelInput"),
   addChannel: document.getElementById("addChannel"),
   channelList: document.getElementById("channelList"),
+  blockedNamesRow: document.getElementById("blockedNamesRow"),
+  blockedNamesList: document.getElementById("blockedNamesList"),
   tabBar: document.getElementById("tabBar"),
   tabPanelBlocking: document.getElementById("tabPanelBlocking"),
   tabPanelStats: document.getElementById("tabPanelStats"),
@@ -190,6 +195,10 @@ const el = {
   lastVideoCard: document.getElementById("lastVideoCard"),
   recencyBar: document.getElementById("recencyBar"),
   recencyLegend: document.getElementById("recencyLegend"),
+  timeAllTotal: document.getElementById("timeAllTotal"),
+  timeByMonth: document.getElementById("timeByMonth"),
+  timeByWeek: document.getElementById("timeByWeek"),
+  timeByDay: document.getElementById("timeByDay"),
 };
 
 // ---- Disclosures (collapsible sections) -------------------------------
@@ -387,7 +396,10 @@ function renderChannelList() {
   (currentSettings.blockedChannels || []).forEach((channel) => {
     const chip = document.createElement("span");
     chip.className = "keyword-chip channel-chip";
-    chip.textContent = channel.name;
+    // expiresAt only ever appears on entries this feature added itself
+    // (see triggerAutoBlock in content.js) — anything typed in by hand has
+    // none, so this label only ever shows up on the ones that'll expire.
+    chip.textContent = channel.name + (channel.expiresAt ? " (today)" : "");
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
@@ -405,6 +417,33 @@ function renderChannelList() {
   });
 
   expandIfNeeded("channelsToggle", (currentSettings.blockedChannels || []).length > 0);
+}
+
+// blockedNames is auto-added only (see triggerAutoBlock in content.js) —
+// there's no input row here, just chips you can remove early if you want
+// a name back before it expires on its own at midnight.
+function renderBlockedNamesList() {
+  const names = currentSettings.blockedNames || [];
+  el.blockedNamesList.innerHTML = "";
+  names.forEach((entry) => {
+    const chip = document.createElement("span");
+    chip.className = "keyword-chip channel-chip";
+    chip.textContent = entry.name + " (today)";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      currentSettings.blockedNames = currentSettings.blockedNames.filter((n) => n.name !== entry.name);
+      saveSettings();
+      renderBlockedNamesList();
+    });
+
+    chip.appendChild(removeBtn);
+    el.blockedNamesList.appendChild(chip);
+  });
+
+  if (el.blockedNamesRow) el.blockedNamesRow.hidden = names.length === 0;
 }
 
 function addChannelFromInput() {
@@ -650,23 +689,145 @@ function renderRecencyBar() {
   });
 }
 
+// ---- Watch stats (time spent: all-time, month/week/day breakdowns) --------
+
+// Local calendar-day key, matching content.js's localDateKey() — the key
+// dailyTotals is bucketed on, so this has to compute identically.
+function localDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Sums whole calendar days in [startDate, endDateExclusive) — a handful of
+// iterations at most (a week or a month), so a plain day-by-day walk over
+// dailyTotals is simpler than pre-indexing by week/month.
+function sumDailyTotalsInRange(dailyTotals, startDate, endDateExclusive) {
+  let sum = 0;
+  const cursor = new Date(startDate);
+  while (cursor < endDateExclusive) {
+    sum += dailyTotals[localDateKey(cursor)] || 0;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return sum;
+}
+
+// Monday of the week containing `date` — weeks are Mon-Sun throughout the
+// day/week breakdown below.
+function startOfWeek(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay(); // 0 = Sun, 1 = Mon, ...
+  const diff = (day === 0 ? -6 : 1) - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function formatShortDate(date) {
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function renderTimeSpent() {
+  const dailyTotals = currentCategoryStats.dailyTotals || {};
+  const totals = currentCategoryStats.totals || {};
+  const grandTotal = Object.values(totals).reduce((sum, v) => sum + v, 0);
+  el.timeAllTotal.textContent = formatDuration(grandTotal);
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Today, yesterday, the day before — each its own row, current day first.
+  const dayRows = [0, 1, 2].map((offset) => {
+    const d = new Date(todayStart);
+    d.setDate(d.getDate() - offset);
+    const seconds = dailyTotals[localDateKey(d)] || 0;
+    const label = offset === 0 ? "Today" : offset === 1 ? "Yesterday" : formatShortDate(d);
+    return { label, seconds, current: offset === 0 };
+  });
+
+  // This week, last week, the week before — Mon-Sun, current week first.
+  const thisWeekStart = startOfWeek(todayStart);
+  const weekRows = [0, 1, 2].map((offset) => {
+    const start = new Date(thisWeekStart);
+    start.setDate(start.getDate() - offset * 7);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    const seconds = sumDailyTotalsInRange(dailyTotals, start, end);
+    const endInclusive = new Date(end);
+    endInclusive.setDate(endInclusive.getDate() - 1);
+    const label = offset === 0 ? "This week" : offset === 1 ? "Last week" : "2 weeks ago";
+    const sub = `${formatShortDate(start)} – ${formatShortDate(endInclusive)}`;
+    return { label, sub, seconds, current: offset === 0 };
+  });
+
+  // This month, last month, the month before — calendar months, current first.
+  const monthRows = [0, 1, 2].map((offset) => {
+    const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
+    const seconds = sumDailyTotalsInRange(dailyTotals, start, end);
+    const monthName = start.toLocaleDateString(undefined, { month: "long" });
+    const label = offset === 0 ? "This month" : start.getFullYear() !== now.getFullYear() ? `${monthName} ${start.getFullYear()}` : monthName;
+    return { label, seconds, current: offset === 0 };
+  });
+
+  renderTimeStatGroup(el.timeByDay, dayRows);
+  renderTimeStatGroup(el.timeByWeek, weekRows);
+  renderTimeStatGroup(el.timeByMonth, monthRows);
+
+  expandIfNeeded("timeSpentToggle", grandTotal > 0);
+}
+
+function renderTimeStatGroup(container, rows) {
+  container.innerHTML = "";
+  rows.forEach((row) => {
+    const div = document.createElement("div");
+    div.className = "time-stat-row" + (row.current ? " current" : "");
+    const subHtml = row.sub ? `<span class="time-stat-sub">${escapeHtml(row.sub)}</span>` : "";
+    div.innerHTML = `
+      <span class="time-stat-label">${escapeHtml(row.label)}${subHtml}</span>
+      <span class="time-stat-value">${formatDuration(row.seconds)}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
 function renderCategorySection() {
   renderCategoryPie();
   renderCategoryLegend();
   renderLastVideo();
   renderRecencyBar();
+  renderTimeSpent();
 }
 
 function saveSettings() {
   chrome.storage.sync.set({ [SETTINGS_KEY]: currentSettings });
 }
 
+// Mirrors content.js's own purge (see isExpiredEntry/purgeExpiredAutoBlocks
+// there) so the popup never shows a chip for a channel or name that's
+// already expired — content.js only re-checks this when a YouTube tab
+// actually runs a pass, which the popup can't assume has happened yet today.
+function isExpiredEntry(entry) {
+  return typeof entry.expiresAt === "number" && Date.now() >= entry.expiresAt;
+}
+
 function loadSettings() {
   chrome.storage.sync.get(SETTINGS_KEY, (result) => {
     currentSettings = { ...DEFAULT_SETTINGS, ...(result[SETTINGS_KEY] || {}) };
+    const keptChannels = (currentSettings.blockedChannels || []).filter((c) => !isExpiredEntry(c));
+    const keptNames = (currentSettings.blockedNames || []).filter((n) => !isExpiredEntry(n));
+    if (
+      keptChannels.length !== (currentSettings.blockedChannels || []).length ||
+      keptNames.length !== (currentSettings.blockedNames || []).length
+    ) {
+      currentSettings.blockedChannels = keptChannels;
+      currentSettings.blockedNames = keptNames;
+      saveSettings();
+    }
     renderToggles();
     renderKeywords();
     renderChannelList();
+    renderBlockedNamesList();
   });
 }
 
@@ -748,6 +909,7 @@ chrome.storage.onChanged.addListener((changes) => {
     renderToggles();
     renderKeywords();
     renderChannelList();
+    renderBlockedNamesList();
   }
   if (changes[STATS_KEY]) {
     currentStats = { ...defaultStats(), ...changes[STATS_KEY].newValue };

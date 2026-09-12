@@ -1,60 +1,60 @@
 /* ---- Claymorphism design system ---------------------------------------
    Base idea: puffy, rounded "clay" shapes carved out of a colored surface.
    Unlike neumorphism (monochrome, subtle), clay shapes read as distinct
-   colored blobs: a soft outer drop shadow for lift, plus a soft inset
+   blobs: a soft outer drop shadow for lift, plus a soft inset
    highlight/shadow pair along the same diagonal for the rounded, inflated
-   edge. Big radii everywhere, saturated pastel palette, one vivid accent
-   (crimson) for anything "on"/active.
+   edge. Big radii everywhere.
 
-   Brand pair: #B81103 (crimson) + #FFFACD (lemon chiffon). Everything
-   below is derived from those two — surfaces lighten/deepen the yellow,
-   ink/shadow tones warm up to match, and the accent gradient runs from
-   the crimson itself down to a darker shade of it. WCAG-checked against
-   --card (#FFFACD): text-primary 15.6:1, text-secondary 5.9:1, white on
-   --accent 6.7:1, white on --accent-dark 9.7:1 — all comfortably clear
-   AA. See popup.js's SHORTS_COLOR for why the Watch Stats donut uses a
-   different, CVD-safe red rather than this exact accent hex.
+   Grayscale UI: every chrome token (surfaces, text, the accent used for
+   "on"/active state, Keywords vs. Blocked Channels chips) is a neutral
+   gray — off-black/off-white rather than pure #000/#fff, never a
+   saturated hue. The one deliberate exception is the Watch Stats donut +
+   legend (popup.js's CATEGORY_COLOR_TABLE / --series-*): those are data,
+   not decoration, and stay in their validated CVD-safe categorical
+   palette so the 8+ video categories remain visually distinguishable —
+   collapsing them to gray would make that chart unreadable. WCAG-checked
+   against --card (#FAFAF9): text-primary 16.4:1, text-secondary 5.1:1,
+   white on --accent 8.9:1, white on --accent-dark 13.6:1 — all
+   comfortably clear AA.
 
    Light is the default `:root`; dark lives in the `prefers-color-scheme:
    dark` block right after it and applies automatically unless overridden
    by the Auto/Light/Dark switcher in the popup (`#themeSwitch` — see its
    own comment below for how the override and the media query coexist).
-   Dark is NOT just the light values darkened: every token, and every
-   Watch Stats chart color, was independently re-validated against its
-   own --card, since a palette that passes on one surface doesn't carry
-   over for free (see the dark block's own comment for two different
-   collisions that proved it — one in the chart palette, one in the
-   scrollbar).
+   Dark is NOT just the light values darkened: every token was
+   independently re-validated against its own --card (#202020):
+   text-primary 14.6:1, text-secondary 6.9:1, white on --accent 8.9:1,
+   dark ink on --gold 5.0:1.
 --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #FFF4B8;
-  --bg-accent: #FFEFA0;
-  --card: #FFFACD;
+  --bg: #F4F4F2;
+  --bg-accent: #ECECEA;
+  --card: #FAFAF9;
   /* RGB triples (no rgba() wrapper) so shadow/glow tints can share one
      source of truth at whatever alpha each rule needs — every
      `rgba(var(--x-rgb), alpha)` below stays in sync automatically
      instead of needing its own hardcoded copy re-tinted per theme. */
-  --shadow-dark-rgb: 158, 122, 42;
-  --shadow-light-rgb: 255, 253, 240;
-  --accent-glow-rgb: 140, 12, 2; /* --accent-dark's RGB */
-  --gold-glow-rgb: 139, 101, 8; /* --gold's RGB */
+  --shadow-dark-rgb: 100, 100, 100;
+  --shadow-light-rgb: 255, 255, 255;
+  --accent-glow-rgb: 15, 15, 15; /* --accent-dark's RGB */
+  --gold-glow-rgb: 92, 92, 92; /* --gold's RGB */
   /* Deliberately separate from --shadow-dark-rgb: that one goes to pure
      black in dark mode (correct for a clay drop-shadow's recessed side),
      which would make a scrollbar thumb built from it nearly invisible
      against a near-black page — a real bug this caused before this
      variable existed. This one always stays a visible, mid-tone color
      against its own theme's surface instead. */
-  --scrollbar-thumb-rgb: 158, 122, 42;
-  --shadow-dark: rgba(var(--shadow-dark-rgb), 0.28);
+  --scrollbar-thumb-rgb: 120, 120, 120;
+  --shadow-dark: rgba(var(--shadow-dark-rgb), 0.24);
   --shadow-light: rgba(var(--shadow-light-rgb), 0.92);
-  --text-primary: #3D0F08;
-  --text-secondary: #8A5233;
-  --accent: #B81103;
-  --accent-dark: #8C0C02;
-  --accent-soft: #FADBD3;
-  --gold: #8B6508; /* secondary accent — Keywords chips, distinct from --accent's Blocked Channels chips */
-  --gold-ink: #ffffff; /* text color ON gold chips — gold is a light hue, so this flips to a dark ink in dark mode instead of staying white */
+  --text-primary: #1C1C1C;
+  --text-secondary: #6B6B6B;
+  --accent: #262626;
+  --accent-dark: #0F0F0F;
+  --accent-soft: #DEDEDC;
+  --gold: #5C5C5C; /* secondary accent — Keywords chips, distinct (lighter gray) from --accent's Blocked Channels chips */
+  --gold-ink: #ffffff; /* text color ON gold chips — gold is light enough here for white text, but flips to a dark ink in dark mode where gold is a lighter gray */
 
   /* Watch-stats categorical palette — validated (dataviz skill: fixed hue
      order, CVD-checked as a set) against this popup's own --card surface.
@@ -107,36 +107,31 @@
    These two blocks' values must be kept identical — CSS has no way to
    share a custom-property block across an @media boundary and a bare
    selector without a preprocessor, and this project deliberately has no
-   build step. Every value in both is independently re-derived and
+   build step. Every chrome token in both is independently re-derived and
    re-validated against ITS OWN surface (--card here), not just the light
-   values darkened — a palette validated on one surface doesn't carry
-   over for free (confirmed the hard way: the dataviz skill's own
-   documented dark steps for this exact 8-hue categorical set FAILED
-   --pairs all against this --card once actually checked, despite being
-   pre-validated elsewhere — a violet/blue collision at ΔE 2.5 under
-   protanopia). Text-primary/secondary, accent-dark-as-text, and every
-   chart color set here passed contrast + validate_palette.js --pairs
-   all / --ordinal against --card (#2B1B0C) same as the light set did
-   against its own surface. */
+   values darkened. The Watch Stats chart palette (--series-*, --seq-*)
+   is untouched from light mode's dataviz-validated set — same reasoning
+   as the light-mode comment above: that's data, kept out of the
+   grayscale reskin on purpose. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #170D04;
-    --bg-accent: #1F1206;
-    --card: #2B1B0C;
+    --bg: #141414;
+    --bg-accent: #1A1A1A;
+    --card: #202020;
     --shadow-dark-rgb: 0, 0, 0;
-    --shadow-light-rgb: 255, 244, 214;
-    --accent-glow-rgb: 214, 48, 30; /* dark --accent-dark's RGB */
-    --gold-glow-rgb: 217, 163, 20; /* dark --gold's RGB */
-    --scrollbar-thumb-rgb: 217, 178, 124; /* NOT --shadow-dark-rgb (pure black here) — needs to stay visible against a near-black page, so it borrows dark --text-secondary's RGB instead */
+    --shadow-light-rgb: 255, 255, 255;
+    --accent-glow-rgb: 46, 46, 46; /* dark --accent-dark's RGB */
+    --gold-glow-rgb: 138, 138, 138; /* dark --gold's RGB */
+    --scrollbar-thumb-rgb: 168, 168, 168; /* NOT --shadow-dark-rgb (pure black here) — needs to stay visible against a near-black page, so it borrows dark --text-secondary's RGB instead */
     --shadow-dark: rgba(var(--shadow-dark-rgb), 0.45);
     --shadow-light: rgba(var(--shadow-light-rgb), 0.06);
-    --text-primary: #FDF3DD; /* 15.1:1 on --card, 17.4:1 on --bg */
-    --text-secondary: #D9B27C; /* 8.4:1 on --card, 9.7:1 on --bg */
-    --accent: #E8402C; /* white text on it: 4.0:1 */
-    --accent-dark: #D6301E; /* white text on it: 4.9:1; as text-on-card (.stat-number, 36px = WCAG large): 3.4:1 */
-    --accent-soft: #3D1710;
-    --gold: #D9A314; /* as text-on-card (.suggested-chip): 7.3:1 */
-    --gold-ink: #241505; /* gold is a light hue even brightened for dark mode — dark ink reads better than white on it (7.8:1) */
+    --text-primary: #F2F2F2; /* 14.6:1 on --card, 16.7:1 on --bg */
+    --text-secondary: #A8A8A8; /* 6.9:1 on --card, 7.9:1 on --bg */
+    --accent: #4A4A4A; /* white text on it: 8.9:1 */
+    --accent-dark: #2E2E2E; /* white text on it: 13.6:1 */
+    --accent-soft: #383838;
+    --gold: #8A8A8A; /* as text-on-card (.suggested-chip): 6.9:1 */
+    --gold-ink: #1A1A1A; /* gold is a lighter gray in dark mode — dark ink reads better than white on it (5.0:1) */
 
     --series-1: #4994df;
     --series-2: #22a080;
@@ -158,23 +153,23 @@
 /* Forced dark (theme = "dark") — identical values to the @media block
    above, applies regardless of OS preference. Keep both in sync. */
 :root[data-theme="dark"] {
-  --bg: #170D04;
-  --bg-accent: #1F1206;
-  --card: #2B1B0C;
+  --bg: #141414;
+  --bg-accent: #1A1A1A;
+  --card: #202020;
   --shadow-dark-rgb: 0, 0, 0;
-  --shadow-light-rgb: 255, 244, 214;
-  --accent-glow-rgb: 214, 48, 30;
-  --gold-glow-rgb: 217, 163, 20;
-  --scrollbar-thumb-rgb: 217, 178, 124;
+  --shadow-light-rgb: 255, 255, 255;
+  --accent-glow-rgb: 46, 46, 46;
+  --gold-glow-rgb: 138, 138, 138;
+  --scrollbar-thumb-rgb: 168, 168, 168;
   --shadow-dark: rgba(var(--shadow-dark-rgb), 0.45);
   --shadow-light: rgba(var(--shadow-light-rgb), 0.06);
-  --text-primary: #FDF3DD;
-  --text-secondary: #D9B27C;
-  --accent: #E8402C;
-  --accent-dark: #D6301E;
-  --accent-soft: #3D1710;
-  --gold: #D9A314;
-  --gold-ink: #241505;
+  --text-primary: #F2F2F2;
+  --text-secondary: #A8A8A8;
+  --accent: #4A4A4A;
+  --accent-dark: #2E2E2E;
+  --accent-soft: #383838;
+  --gold: #8A8A8A;
+  --gold-ink: #1A1A1A;
 
   --series-1: #4994df;
   --series-2: #22a080;
@@ -371,7 +366,11 @@ h1 {
   font-size: 36px;
   font-weight: 800;
   line-height: 1;
-  color: var(--accent-dark);
+  /* var(--text-primary), not --accent-dark: --accent-dark's job elsewhere
+     is being the dark stop of a button gradient under white text, which
+     in dark mode makes it barely lighter than --card itself — unreadable
+     as text-on-card. --text-primary is calibrated for that job instead. */
+  color: var(--text-primary);
 }
 .stat-label {
   font-size: 13px;
@@ -741,6 +740,31 @@ footer {
   opacity: 0.55;
 }
 
+.rate-us-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0 10px 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #ffffff;
+  background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
+  box-shadow: 4px 4px 8px rgba(var(--accent-glow-rgb), 0.35), -2px -2px 6px rgba(var(--shadow-light-rgb), 0.5);
+  transition: box-shadow 0.1s, transform 0.1s;
+}
+.rate-us-link:active {
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.25);
+  transform: translateY(1px);
+}
+.rate-us-star {
+  font-size: 13px;
+  line-height: 1;
+}
+
 /* Scoped to the body only (not the whole card) — the "What to block"
    header stays fully visible and clickable even while blocking is off,
    so you can still open it and see what's configured. Only the actual
@@ -937,4 +961,87 @@ footer {
 }
 #recentVideosCard.empty .last-video-card {
   display: none;
+}
+
+/* ---- Time spent (all-time + month/week/day breakdowns) -------------------
+   Plain rows rather than a chart — these are meant to be scanned as
+   numbers, not compared as proportions. The current period in each group
+   (This month/week, Today) gets the accent-gradient treatment so it reads
+   as "you are here" at a glance against the two rows before it. */
+.time-stat-hero {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  margin-bottom: 14px;
+  background: var(--bg);
+  box-shadow: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+}
+.time-stat-hero .time-stat-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.time-stat-hero .time-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.time-stat-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 12px 0 6px 0;
+}
+.time-stat-group-label:first-of-type {
+  margin-top: 0;
+}
+
+.time-stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.time-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+.time-stat-row.current {
+  background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
+  box-shadow: 3px 3px 8px rgba(var(--accent-glow-rgb), 0.3);
+}
+.time-stat-row.current .time-stat-label,
+.time-stat-row.current .time-stat-value,
+.time-stat-row.current .time-stat-sub {
+  color: #ffffff;
+}
+.time-stat-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.time-stat-sub {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.time-stat-value {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }

@@ -8,14 +8,28 @@ the dashboard requires.
 ## Screenshots (1280x800, up to 5, at least 1 required)
 
 - `popup-blocking.png` — branded feature screenshot of the popup's
-  Blocking tab: real extension, real seeded demo data (Keywords and
-  Blocked Channels both populated and auto-expanded, since those
-  sections only expand by default when they hold something), composed
-  on a card next to headline copy and feature pills.
-- `popup-stats.png` — same treatment for the Watch Stats tab: real
-  donut chart, category legend (including the "Shorts" and folded
-  "Other" buckets), upload-age bar, and a "Last watched" card, all
-  driven by seeded `chrome.storage` data rather than hand-drawn mockups.
+  Blocking tab: real extension, real seeded demo data, composed on a card
+  next to headline copy and feature pills. Recaptured for the 3.8.1
+  release to show the new "Auto-block after watching 60%" toggle
+  (Blocked Channels card) switched on, an auto-added channel tagged
+  "(today)", and the "Also blocking any video that mentions these names
+  today" row it populates — Keywords was seeded empty this round instead
+  of its usual demo chips so that content stayed in frame without
+  cropping (the popup grew taller with the new feature); pick it back up
+  next time this screenshot needs a refresh unrelated to Blocked
+  Channels. Also recaptured a second time in the same release to pick up
+  the grayscale reskin (see below) — the composite's own background/text
+  colors were updated to match (`#F4F4F2`/`#1C1C1C`/`#262626` in place of
+  the old `#FFF4B8`/`#3D0F08`/`#B81103`), so the marketing frame doesn't
+  clash with the now-grayscale popup screenshot sitting inside it.
+- `popup-stats.png` — same treatment for the Watch Stats tab, recaptured
+  for the new **Time Spent** card (all-time total + month/week/day
+  breakdown): real donut chart and category legend, plus Time Spent's
+  "All time" + full "By month" group, cropped right after a complete row
+  (same "let it overflow past the frame, crop cleanly" approach the
+  original screenshots already used) rather than shrinking everything to
+  fit Recency/Last Watched in too — those two didn't change this round.
+  Same grayscale composite-color update as `popup-blocking.png` above.
 - `youtube-search.png` — live search results for "news", signed out —
   0 visible `/shorts/` links, and Calm Mode's thumbnail desaturation
   visibly muting the news thumbnails' usual high-contrast red banners.
@@ -51,6 +65,17 @@ up the Auto/Light/Dark theme switcher along the way, since that UI
 shipped after these were last captured and a fresh capture reflects
 whatever the popup currently looks like. The three `youtube-*.png`
 screenshots don't embed the icon and are unaffected.
+
+**The 3.8.1 popup reskin (crimson/lemon-chiffon → grayscale) only
+touched `popup.css`'s in-app chrome tokens — the app icon and both promo
+tiles are unaffected and stay crimson on purpose.** The icon is the
+brand mark shown in the toolbar and the Web Store listing itself; the
+promo tiles echo that same icon. Only the popup's own internal UI went
+neutral gray (Watch Stats chart colors excepted — those are data, kept
+as-is). So `promo-small.png`/`promo-marquee.png` still show the crimson
+gradient/wordmark deliberately, while `popup-blocking.png`/
+`popup-stats.png` show the grayscale popup they actually contain — this
+split is intentional, not a leftover inconsistency.
 
 All seven are ready to upload as-is.
 

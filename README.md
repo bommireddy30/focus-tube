@@ -154,7 +154,41 @@ request back to youtube.com itself to read a video's category; see
   same failure mode the Keywords section above already called out.
   Shares the same per-card scanning (`getOuterVideoItemContainers`)
   Keywords uses, so both passes see "one entry per visual card"
-  consistently rather than duplicating that dedup logic.
+  consistently rather than duplicating that dedup logic. Both this
+  fallback and `applyBlockedNames` (below) match through
+  `normalizeForNameMatch`, which strips everything but letters/digits from
+  both sides before comparing — a name can show up on someone else's card
+  squished into a handle/tag with no space at all (confirmed: "Ravi Gupta"
+  invisible to a plain substring check against a title containing
+  "@raviguptacomedy", since there's literally no space between "Ravi" and
+  "Gupta" in that text; normalizing both sides to "ravigupta" catches it).
+
+  An opt-in toggle, **"Auto-block after watching 60%"** (off by default),
+  populates this same list automatically — and a second one,
+  `blockedNames` — via `maybeAutoBlockChannel`/`triggerAutoBlock` in
+  `content.js`, which run on every watch-time tick already collected for
+  Watch Stats. Once a video's watched fraction
+  (`totalWatchedSec / lengthSeconds`) crosses `AUTO_BLOCK_WATCH_FRACTION`
+  (0.6), its channel — identified by `videoDetails.channelId`, the same
+  stable id `parseChannelIdFromHref` extracts from card links — is added to
+  `blockedChannels` exactly like a hand-typed entry, silently, no
+  confirmation prompt. Watching one video on a person's own channel only
+  blocks *that* channel, though — it says nothing about a different
+  channel re-uploading, interviewing, or reacting to the same person, so
+  the video's channel display name (`videoDetails.author`) is *also* added
+  to a second list, `blockedNames`, matched by `applyBlockedNames` against
+  every video card's full text (any channel) the same substring technique
+  Keywords already uses. Both additions are tagged with an `expiresAt`
+  (midnight, local time, of the day they were added) that a hand-typed
+  entry never has, and both take effect on every surface immediately via
+  the existing settings storage-change listener. `purgeExpiredAutoBlocks`
+  (content.js) drops expired entries from both lists on every pass,
+  regardless of the master toggle, so anything auto-blocked one day is
+  watchable again the next; the popup runs the same check
+  (`isExpiredEntry`) on load so it never shows a stale chip, marking
+  channel chips that'll expire with "(today)" and listing auto-blocked
+  names in their own "Also blocking any video that mentions these names
+  today" row underneath.
 
 - **Watch Stats** — a separate tab in the popup, unrelated to blocking,
   and tracked independent of it too: there's no setting that turns
@@ -240,6 +274,37 @@ request back to youtube.com itself to read a video's category; see
   "Unknown" (the same neutral gray used for "Uncategorized"/"Other"
   elsewhere) rather than being silently folded into a real bucket.
 
+  A **"Time spent"** card breaks the same watch time down by *when*,
+  rather than by category or upload age: an all-time total, then three
+  rows each for month/week/day — current period first (This month/This
+  week/Today), each of the two before it labeled and dated for context
+  (e.g. "2 weeks ago — 24 Aug – 30 Aug"). Backed by a new `dailyTotals`
+  bucket (content.js) recorded alongside `totals`/`recencyTotals` in the
+  same `chrome.storage.local` record, keyed by **local, not UTC, calendar
+  day** (`localDateKey` — duplicated identically in both `content.js` and
+  `popup.js`, since the day boundary has to agree between where it's
+  written and where it's read) so "Today"/"This week" line up with the
+  viewer's own clock rather than UTC's. Weeks are Monday–Sunday
+  (`startOfWeek`); `sumDailyTotalsInRange` just walks day-by-day over the
+  range, which is fine at this scale (a week or a month is at most 31
+  iterations). Rendered as plain labeled rows rather than a chart
+  (`renderTimeStatGroup` in `popup.js`) — these are meant to be scanned as
+  numbers, not compared as proportions — with the current period in each
+  group visually called out via the accent gradient so it reads as "you
+  are here" against the two rows before it. Each flush credits its seconds
+  to the calendar day(s) actually watched — not whichever day the periodic
+  flush happens to land on — via `splitSecondsByDay` (content.js), which
+  proportionally splits a flush window's seconds across the day(s) it
+  spans, weighted by how much of the window falls on each. This only ever
+  differs from a naive "credit it all to now" for a flush window that
+  itself crosses midnight, which a normal `WATCH_FLUSH_INTERVAL_MS` tick
+  never does — but a browser throttling a backgrounded/inactive tab's
+  timers can delay a flush well past midnight, and without this a video
+  left playing overnight would have its whole backlog misattributed to
+  whatever day the delayed flush happened to land on instead of split
+  across the days actually watched. `watchTracker.lastFlushMs` tracks
+  each window's start so `flushWatchTracker` can compute it.
+
 The master on/off toggle at the top of the popup actually **restores**
 everything the moment you switch it off — it doesn't just pause future
 hiding, it walks the page and un-hides everything already blocked. Flip it
@@ -252,6 +317,12 @@ can't set the badge directly, only extension pages can. This is purely
 informational (no cap tied to it) and never resets on its own — the only
 way to zero it out is removing the extension.
 
+The popup footer also carries a "Leave us a rating" link straight to the
+item's Chrome Web Store listing (hardcoded to the real published item ID,
+`kaajofnjggbnmehghhdkaagpipdlkogl` — not something this repo can derive on
+its own, since a dev-mode unpacked load gets a different, random ID every
+time).
+
 ## Design — Claymorphism
 
 The popup uses a claymorphism style: puffy, rounded "clay" shapes carved
@@ -259,18 +330,26 @@ out of a soft gradient surface. Each card/button gets a soft dark
 drop-shadow (lift) paired with a soft light highlight on the opposite
 corner, plus a faint inset pair along the same diagonal for the rounded,
 inflated edge — this is what makes controls read as squeezable blobs
-rather than flat panels. One vivid crimson accent (with a gold accent for
-Keywords chips, distinct from Blocked Channels' crimson ones) marks
-anything "on" or active against the otherwise soft surface. Brand pair:
-`#B81103` (crimson) + `#FFFACD` (lemon chiffon) — everything else (surfaces,
-ink, shadow tints, the Watch Stats chart colors) is derived from those
-two. All of it lives in `:root` CSS variables at the top of `popup.css`
+rather than flat panels. **Grayscale UI**: every chrome token — surfaces,
+text, the accent that marks anything "on"/active, both chip colors
+(Keywords' gold-toned chip vs. Blocked Channels') — is a neutral
+off-black/off-white gray, never a saturated hue. The one deliberate
+exception is the Watch Stats donut + legend: those colors are data, not
+decoration, so they stay in their validated CVD-safe categorical palette
+regardless of the surrounding UI's palette — collapsing 8+ video
+categories to gray would make that chart unreadable. WCAG-checked against
+`--card` (`#FAFAF9`): text-primary 16.4:1, text-secondary 5.1:1, white on
+`--accent` 8.9:1, white on `--accent-dark` 13.6:1 — all comfortably clear
+AA. All of it lives in `:root` CSS variables at the top of `popup.css`
 (`--bg`, `--card`, `--shadow-dark`, `--shadow-light`, `--accent`, `--gold`)
 if the palette needs adjusting later — shadow/glow tints specifically are
 RGB-triple variables (`--shadow-dark-rgb` etc.) consumed via
 `rgba(var(--x-rgb), alpha)`, so every rule sharing a tint at different
 alphas stays in sync from one source instead of needing hand-updated
-copies.
+copies. (An earlier crimson/lemon-chiffon brand pair — `#B81103` +
+`#FFFACD` — lived here before this reskin; the Watch Stats chart colors
+were deliberately left untouched by the switch, so they're the one part
+of the palette that predates it.)
 
 **Dark theme** defaults to the browser/OS's `prefers-color-scheme`
 setting, with a three-way **Auto / Light / Dark** pill switcher
@@ -310,12 +389,13 @@ shipped here (`--series-1` through `--series-8` plus `--series-shorts`)
 was generated from scratch — 8 hues spread via HSL, iteratively adjusted
 against `validate_palette.js --pairs all` until it passed, the same way
 the light-mode "Shorts" 9th slot was found. Also worth knowing: `--gold`
-is a light hue even brightened for dark mode, so `--gold-ink` (the text
-color used *on* gold chips) flips to a dark ink in dark mode instead of
-staying white — reusing `.keyword-chip`'s color for `.channel-chip` (a
-different, always-crimson chip that shares the same markup) would have
-silently inherited that flip, so `.channel-chip` sets its own explicit
-`color: #ffffff` rather than relying on inheritance.
+is a lighter gray than `--accent` even in dark mode, so `--gold-ink` (the
+text color used *on* gold chips) flips to a dark ink in dark mode instead
+of staying white — reusing `.keyword-chip`'s color for `.channel-chip` (a
+different chip, always styled off `--accent` rather than `--gold`, that
+shares the same markup) would have silently inherited that flip, so
+`.channel-chip` sets its own explicit `color: #ffffff` rather than
+relying on inheritance.
 
 ## How it works
 
@@ -452,3 +532,20 @@ Still needs a human before submitting:
 - A quick manual check that Calm Mode's notification-badge/subscribe-
   button selectors still match current YouTube markup (see "Known
   limitations" above) before flipping it on by default for real users.
+
+**3.8.1 release notes:** adds the auto-block-after-60%-watched feature
+(channel + cross-channel name blocking, both self-expiring at midnight —
+see the Blocked Channels section above) and fixes a name-matching gap
+where a blocked name split across a squished handle (e.g. "Ravi Gupta"
+inside "@raviguptacomedy") wasn't caught by the old plain-substring
+check. `manifest.json` bumped 3.7.0 → 3.8.1, not 3.7.1 — **the dashboard
+already had 3.8.0 published live that this repo's git history has no
+record of** (no commit ever set `version` past 3.7.0), meaning a prior
+release was zipped and uploaded straight from a locally-edited manifest
+without committing that edit back. Uploads must strictly increase past
+whatever's actually live on the dashboard, not just past this repo's
+last commit — check the dashboard's current published version before
+picking the next one, and commit the manifest bump this time so it
+doesn't happen again. `store-assets/popup-blocking.png` was
+regenerated to show the new toggle (see `store-assets/README.md`);
+`focus-tube-v3.8.1.zip` is packaged and ready to upload.

@@ -3,8 +3,10 @@
 // Blocking categories: Shorts player, Shorts shelves, Shorts in search,
 // Loose Shorts (feeds/history/channels/up-next), Shorts links
 // (nav/chip/tab), Mixes, Autoplay, Calm Mode, free-text Keywords, and
-// Blocked Channels (a hard, deterministic block by channel identity).
-// Everything is free — no daily cap, no tiers, no license keys.
+// Blocked Channels (a hard, deterministic block by channel identity —
+// optionally populated automatically once you've watched 60% of a video,
+// see AUTO_BLOCK_WATCH_FRACTION below). Everything is free — no daily cap,
+// no tiers, no license keys.
 //
 // Also tracks watch time per YouTube video category (Education, Autos &
 // Vehicles, Entertainment, etc. — YouTube's own official metadata) — see
@@ -37,6 +39,8 @@
     keywords: [],
     matchWholeWord: false, // false = substring match, true = whole-word only
     blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
+    autoBlockAfterWatch: false, // once AUTO_BLOCK_WATCH_FRACTION of a video has been watched, block its channel AND its name everywhere else (see blockedNames)
+    blockedNames: [], // [{ name, expiresAt }] — auto-added only; matches any video's full card text (any channel), same technique Keywords uses, so a person isn't just blocked on their own channel but wherever else their name is mentioned too
   };
 
   function defaultStats() {
@@ -624,6 +628,21 @@
     return null;
   }
 
+  // A person's name can show up on someone ELSE's card squished into a
+  // handle or tag rather than typed out with its original spacing — e.g.
+  // "Ravi Gupta" appearing as "@raviguptacomedy" in another channel's
+  // video title. A plain lowercased substring check for "ravi gupta"
+  // (with the space) silently misses that, since the source text has no
+  // space there at all. Stripping everything but letters/digits from both
+  // the stored name and the card text before comparing catches it —
+  // "ravigupta" is still found inside "raviguptacomedy" — at the cost of
+  // ignoring punctuation/spacing entirely, which is an acceptable
+  // trade-off for a specific multi-word name (low odds of a coincidental
+  // false positive) even though it wouldn't be for a single common word.
+  function normalizeForNameMatch(str) {
+    return (str || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+
   // Hides every video card whose channel matches an entry in
   // settings.blockedChannels — see the section comment above for why this
   // is id-first (unique, stable, via the card's channel link) with a
@@ -636,7 +655,7 @@
     const blockedNames = [];
     settings.blockedChannels.forEach((entry) => {
       if (entry.id) blockedIds.add(entry.id.toLowerCase());
-      if (entry.name) blockedNames.push(entry.name.trim().toLowerCase());
+      if (entry.name) blockedNames.push(normalizeForNameMatch(entry.name));
     });
 
     let count = 0;
@@ -647,10 +666,40 @@
         if (hideEl(container, "channel")) count++;
         continue;
       }
-      const cardText = getDeepText(container).toLowerCase();
+      const cardText = normalizeForNameMatch(getDeepText(container));
       if (!cardText) continue;
       const matched = blockedNames.some((name) => name && cardText.includes(name));
       if (matched && hideEl(container, "channel")) count++;
+    }
+    return count;
+  }
+
+  // Hides any video card (any channel) whose full text mentions a name in
+  // settings.blockedNames — auto-added when AUTO_BLOCK_WATCH_FRACTION is
+  // crossed (see triggerAutoBlock above), so watching one video to
+  // completion on a person's own channel also catches a different channel
+  // re-uploading, interviewing, or reacting to that same person. Kept as
+  // its own list/pass rather than folded into applyChannelBlock above —
+  // that one's name fallback only fires as a per-entry fallback when its
+  // own id lookup misses, whereas this is the primary, independently
+  // expiring mechanism for "block this name everywhere," matching exactly
+  // like Keywords (getDeepText + substring) since a person's name can
+  // legitimately appear on a video whose channel is anything.
+  function applyBlockedNames() {
+    const activeNames = (settings.blockedNames || [])
+      .filter((n) => !isExpiredEntry(n))
+      .map((n) => normalizeForNameMatch(n.name))
+      .filter(Boolean);
+    if (activeNames.length === 0) return 0;
+
+    let count = 0;
+    for (const container of getOuterVideoItemContainers()) {
+      if (alreadyHandled(container)) continue;
+      const cardText = normalizeForNameMatch(getDeepText(container));
+      if (!cardText) continue;
+      if (activeNames.some((name) => cardText.includes(name))) {
+        if (hideEl(container, "name")) count++;
+      }
     }
     return count;
   }
@@ -670,6 +719,9 @@
     // tracking is an analytics feature, not a hiding pass, and stays live
     // even while blocking itself is switched off.
     maintainWatchTracking();
+    // Same reasoning — cleanup, not a hiding pass, stays live regardless
+    // of the master toggle.
+    purgeExpiredAutoBlocks();
 
     if (!effectivelyEnabled()) {
       revealAll();
@@ -711,6 +763,7 @@
 
     hiddenCount += applyKeywordFilter();
     hiddenCount += applyChannelBlock();
+    hiddenCount += applyBlockedNames();
 
     return hiddenCount;
   }
@@ -857,6 +910,8 @@
       lengthSeconds,
       tags,
       recencyBucket: bucketForPublishDate(publishDate),
+      channelId: vd.channelId || "",
+      channelName: vd.author || "",
     };
   }
 
@@ -947,7 +1002,63 @@
   }
 
   function defaultCategoryStats() {
-    return { totals: {}, recencyTotals: {}, lastVideo: null };
+    return { totals: {}, recencyTotals: {}, dailyTotals: {}, lastVideo: null };
+  }
+
+  // Local (not UTC) calendar-day key, e.g. "2026-09-03" — the Watch Stats
+  // day/week/month breakdown in popup.js buckets on this, so a viewer in
+  // any timezone sees "today"/"this week" line up with their own clock
+  // rather than UTC's.
+  function localDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  // Splits `seconds` of watch time across the actual calendar day(s) the
+  // [windowStartMs, windowEndMs) wall-clock window spans, weighted by how
+  // much of that window falls on each day — e.g. a flush window that starts
+  // at 23:58 and ends at 00:03 credits ~2/5 of its seconds to the earlier
+  // day and ~3/5 to the next. Normally this window is one flush interval
+  // (a few seconds, never crosses midnight), but a backgrounded tab can get
+  // its timers throttled well past that, so a long-running session left
+  // playing overnight is still attributed to the day(s) actually watched
+  // instead of dumping the whole backlog onto whatever day the delayed
+  // flush happens to fire on.
+  function splitSecondsByDay(seconds, windowStartMs, windowEndMs) {
+    const totalMs = windowEndMs - windowStartMs;
+    if (totalMs <= 0) return { [localDateKey(new Date(windowEndMs))]: seconds };
+
+    const perDay = {};
+    let cursor = windowStartMs;
+    while (cursor < windowEndMs) {
+      const cursorDate = new Date(cursor);
+      const dayStart = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), cursorDate.getDate());
+      const nextDayStartMs = dayStart.getTime() + 86400000;
+      const spanEndMs = Math.min(windowEndMs, nextDayStartMs);
+      const dayKey = localDateKey(cursorDate);
+      perDay[dayKey] = (perDay[dayKey] || 0) + (seconds * (spanEndMs - cursor)) / totalMs;
+      cursor = spanEndMs;
+    }
+
+    // Rounding each fractional share independently can lose or gain a
+    // second versus the original total; folding the remainder into
+    // whichever day already has the largest share keeps the sum exact
+    // without visibly distorting any one day's number.
+    const keys = Object.keys(perDay);
+    const rounded = {};
+    let roundedSum = 0;
+    keys.forEach((k) => {
+      rounded[k] = Math.round(perDay[k]);
+      roundedSum += rounded[k];
+    });
+    const drift = Math.round(seconds) - roundedSum;
+    if (drift !== 0 && keys.length > 0) {
+      const largestKey = keys.reduce((a, b) => (perDay[b] > perDay[a] ? b : a));
+      rounded[largestKey] += drift;
+    }
+    return rounded;
   }
 
   // Read-modify-write against fresh storage (rather than an in-memory
@@ -957,7 +1068,7 @@
   // holds only the single most-recently-watched video, not a history list —
   // it resets to a fresh { seconds } count whenever tracking moves to a
   // different videoId, and keeps accumulating while you stay on the same one.
-  function persistWatchedSeconds(videoId, meta, seconds) {
+  function persistWatchedSeconds(videoId, meta, seconds, windowStartMs, windowEndMs) {
     if (seconds <= 0) return;
     try {
       chrome.storage.local.get(CATEGORY_STATS_KEY, (result) => {
@@ -967,6 +1078,14 @@
 
         catStats.recencyTotals = { ...catStats.recencyTotals };
         catStats.recencyTotals[meta.recencyBucket] = (catStats.recencyTotals[meta.recencyBucket] || 0) + seconds;
+
+        // Credited to the actual calendar day(s) watched, not the day the
+        // flush happens to land on — see splitSecondsByDay() above.
+        catStats.dailyTotals = { ...catStats.dailyTotals };
+        const dayShares = splitSecondsByDay(seconds, windowStartMs, windowEndMs);
+        Object.keys(dayShares).forEach((dayKey) => {
+          catStats.dailyTotals[dayKey] = (catStats.dailyTotals[dayKey] || 0) + dayShares[dayKey];
+        });
 
         const last = catStats.lastVideo;
         catStats.lastVideo =
@@ -997,12 +1116,128 @@
     }
   }
 
-  let watchTracker = null; // { videoId, videoEl, category, title, lengthSeconds, tags, recencyBucket, accumulatedSec, lastTime, onTimeUpdate, flushTimer }
+  // Auto-block: once a video has been watched to this fraction of its
+  // length, its channel gets added to blockedChannels (same identity,
+  // videoDetails.channelId, the Blocked Channels feature already matches
+  // on) AND its display name gets added to blockedNames — a person isn't
+  // just blocked on their own channel this way, but wherever else their
+  // name shows up on a video card (a different channel re-uploading,
+  // interviewing, or reacting to them), the same substring technique
+  // Keywords already uses against a card's full text (see applyBlockedNames
+  // below). Both lists are otherwise indistinguishable from entries typed
+  // in by hand and take effect on every surface immediately — the only
+  // difference is the `expiresAt` tag (see isExpiredEntry) that lets them
+  // self-clear at midnight instead of staying blocked forever.
+  const AUTO_BLOCK_WATCH_FRACTION = 0.6;
+
+  function isChannelAlreadyBlocked(id, name) {
+    const idLower = (id || "").toLowerCase();
+    const nameLower = (name || "").trim().toLowerCase();
+    return (settings.blockedChannels || []).some((c) => {
+      if (idLower && c.id && c.id.toLowerCase() === idLower) return true;
+      if (!c.id && nameLower && (c.name || "").trim().toLowerCase() === nameLower) return true;
+      return false;
+    });
+  }
+
+  function isNameAlreadyBlocked(name) {
+    const nameLower = (name || "").trim().toLowerCase();
+    if (!nameLower) return true; // nothing to add
+    return (settings.blockedNames || []).some((n) => (n.name || "").trim().toLowerCase() === nameLower);
+  }
+
+  // Midnight, local time, of the day the entry was added — not "24 hours
+  // from now" — matching "block for the rest of today" rather than a
+  // rolling one-day window.
+  function nextLocalMidnight() {
+    const d = new Date();
+    d.setHours(24, 0, 0, 0);
+    return d.getTime();
+  }
+
+  // Only entries this feature added carry `expiresAt` — anything typed in
+  // by hand via the popup has none and is never purged. Shared by both
+  // blockedChannels and blockedNames entries, which use the same shape.
+  function isExpiredEntry(entry) {
+    return typeof entry.expiresAt === "number" && Date.now() >= entry.expiresAt;
+  }
+
+  // Drops any auto-block entries (both lists) whose day has passed, so
+  // whatever got auto-blocked yesterday is watchable again today. Runs on
+  // every pass (regardless of the master enabled toggle, like
+  // maintainWatchTracking above) so the lists self-clean as soon as a
+  // YouTube tab is open, not just when a video happens to cross the
+  // threshold again.
+  function purgeExpiredAutoBlocks() {
+    const channels = settings.blockedChannels || [];
+    const keptChannels = channels.filter((c) => !isExpiredEntry(c));
+    const names = settings.blockedNames || [];
+    const keptNames = names.filter((n) => !isExpiredEntry(n));
+    if (keptChannels.length === channels.length && keptNames.length === names.length) return;
+    settings = { ...settings, blockedChannels: keptChannels, blockedNames: keptNames };
+    try {
+      chrome.storage.sync.set({ [SETTINGS_KEY]: settings });
+    } catch (e) {
+      // non-critical
+    }
+    revealByReason("channel");
+    revealByReason("name");
+  }
+
+  // Single combined write for both lists — triggerAutoBlock's two additions
+  // both read/derive from the same `settings` snapshot, so folding them
+  // into one assignment plus one storage.sync.set avoids one call
+  // clobbering the other's in-memory update (they run synchronously back
+  // to back, but a single write is simpler to reason about than two).
+  function triggerAutoBlock(channelId, channelName) {
+    let changed = false;
+    let blockedChannels = settings.blockedChannels || [];
+    let blockedNames = settings.blockedNames || [];
+
+    if (channelId && !isChannelAlreadyBlocked(channelId, channelName)) {
+      blockedChannels = [
+        ...blockedChannels,
+        { id: channelId, name: channelName || channelId, expiresAt: nextLocalMidnight() },
+      ];
+      changed = true;
+    }
+
+    if (!isNameAlreadyBlocked(channelName)) {
+      blockedNames = [...blockedNames, { name: channelName.trim(), expiresAt: nextLocalMidnight() }];
+      changed = true;
+    }
+
+    if (!changed) return;
+    settings = { ...settings, blockedChannels, blockedNames };
+    try {
+      chrome.storage.sync.set({ [SETTINGS_KEY]: settings });
+    } catch (e) {
+      // non-critical
+    }
+  }
+
+  // Checked on every timeupdate tick rather than only at flush time —
+  // totalWatchedSec (unlike accumulatedSec) never resets, since flushing
+  // to storage happens independently every WATCH_FLUSH_INTERVAL_MS and
+  // would otherwise make this fraction dip back toward zero mid-video.
+  function maybeAutoBlockChannel() {
+    if (!watchTracker || watchTracker.autoBlocked) return;
+    if (!settings.autoBlockAfterWatch) return;
+    if (!watchTracker.channelId || !watchTracker.lengthSeconds) return;
+    if (watchTracker.totalWatchedSec / watchTracker.lengthSeconds < AUTO_BLOCK_WATCH_FRACTION) return;
+    watchTracker.autoBlocked = true;
+    triggerAutoBlock(watchTracker.channelId, watchTracker.channelName);
+  }
+
+  let watchTracker = null; // { videoId, videoEl, category, title, lengthSeconds, tags, recencyBucket, channelId, channelName, totalWatchedSec, autoBlocked, accumulatedSec, lastTime, lastFlushMs, onTimeUpdate, flushTimer }
 
   function flushWatchTracker() {
     if (!watchTracker) return;
     const seconds = Math.round(watchTracker.accumulatedSec);
     watchTracker.accumulatedSec -= seconds;
+    const windowStartMs = watchTracker.lastFlushMs;
+    const windowEndMs = Date.now();
+    watchTracker.lastFlushMs = windowEndMs;
     if (seconds > 0) {
       persistWatchedSeconds(
         watchTracker.videoId,
@@ -1013,7 +1248,9 @@
           tags: watchTracker.tags,
           recencyBucket: watchTracker.recencyBucket,
         },
-        seconds
+        seconds,
+        windowStartMs,
+        windowEndMs
       );
     }
   }
@@ -1040,8 +1277,13 @@
       lengthSeconds: 0,
       tags: [],
       recencyBucket: "Unknown",
+      channelId: "",
+      channelName: "",
+      totalWatchedSec: 0,
+      autoBlocked: false,
       accumulatedSec: 0,
       lastTime: videoEl.currentTime || 0,
+      lastFlushMs: Date.now(),
     };
 
     // Metadata resolves asynchronously — the tracker starts accumulating
@@ -1056,6 +1298,8 @@
         watchTracker.lengthSeconds = meta.lengthSeconds;
         watchTracker.tags = meta.tags;
         watchTracker.recencyBucket = meta.recencyBucket;
+        watchTracker.channelId = meta.channelId;
+        watchTracker.channelName = meta.channelName;
         if (meta.title) watchTracker.title = meta.title;
       }
     });
@@ -1070,6 +1314,8 @@
       watchTracker.lastTime = videoEl.currentTime;
       if (delta > 0 && delta < MAX_TIMEUPDATE_DELTA_SEC) {
         watchTracker.accumulatedSec += delta;
+        watchTracker.totalWatchedSec += delta;
+        maybeAutoBlockChannel();
       }
     };
     videoEl.addEventListener("timeupdate", watchTracker.onTimeUpdate);
@@ -1185,6 +1431,9 @@
       // removed) gets re-hidden immediately below by runAndPersist() — the
       // reveal only ever sticks for entries that are genuinely gone now.
       revealByReason("channel");
+      // Same reasoning, for blockedNames — removing an auto-added name (or
+      // letting it expire) should bring its matches back without a reload.
+      revealByReason("name");
       runAndPersist();
     }
   });

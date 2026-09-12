@@ -67,11 +67,20 @@ WHAT IT BLOCKS
   autoplay.
 • Keywords — hide any video by title, channel name, or description
   text you choose, with an optional whole-word-only match mode.
+• Blocked Channels — hide every video from a channel you pick,
+  everywhere it could appear (Home, Search, Subscriptions, up-next) —
+  unlike YouTube's own "Don't recommend this channel," which doesn't
+  touch Search and can fade over time, this is unconditional.
 • Watch Stats — a pie chart of how many minutes you watch per YouTube
   category (Education, Entertainment, Autos & Vehicles, Howto & Style,
-  and so on — YouTube's own official metadata), plus a "last watched"
-  card. Runs continuously and stays on your device; there's no in-app
-  toggle to disable it or reset the data.
+  and so on — YouTube's own official metadata), a breakdown of that same
+  watch time by how recently each video was uploaded (Recent/This
+  year/Older), a "Time spent" view broken down by day, week, and month
+  (current period vs. the two before it, so you can see whether this
+  week is trending up or down from the last two), and a "last watched"
+  card showing % of the video actually watched. Runs continuously and
+  stays on your device; there's no in-app toggle to disable it or reset
+  the data.
 
 WHY
 Shorts, autoplay, and red urgency badges are deliberate engagement
@@ -204,10 +213,10 @@ no app-shell rendering at all.
 Ready in `store-assets/` as 24-bit PNG, no alpha — see that folder's
 README for details on each. Already at the dashboard's 5-screenshot
 maximum:
-- `popup-blocking.png` — Blocking tab, Keywords and Blocked Channels
-  populated with example entries
-- `popup-stats.png` — Watch Stats tab, real category donut + upload-age
-  breakdown + last-watched card
+- `popup-blocking.png` — Blocking tab, Blocked Channels populated with
+  example entries, including the auto-block-after-60%-watched toggle
+- `popup-stats.png` — Watch Stats tab, real category donut + the new
+  Time Spent card (all-time total + By month breakdown)
 - `youtube-search.png`
 - `youtube-watch.png`
 - `youtube-home.png`
