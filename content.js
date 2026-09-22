@@ -282,6 +282,88 @@
     }
   }
 
+  // Magic disappear: rather than yanking display:none the instant
+  // something matches, hideEl() below plays a brief shrink/lift/fade (the
+  // .focustube-poof class in content.css) while spawnSparkles() layers a
+  // warm light flash, a burst of multicolor twinkling sparkle stars, and
+  // a trail of drifting fairy-dust motes over the element's former spot
+  // — then finishes the hide once the element's own fade is done (the
+  // dust is allowed to linger a bit longer than that, on purpose — a
+  // little shimmer after the thing is already gone is what sells "poof",
+  // not just "faded out"). pendingPoofs tracks the in-flight timeout per
+  // element so revealAll()/revealByReason() can cancel it and snap the
+  // element straight back to visible if a reveal happens mid-animation
+  // (e.g. the user flips the master toggle off while a poof is playing).
+  const POOF_DURATION_MS = 420;
+  const SPARKLE_LIFETIME_MS = 900; // covers the flash (500ms), stars (620ms), and dust (750ms), all with random start delay
+  const pendingPoofs = new WeakMap();
+  // Real glitter is never one flat color — mixing the brand red in with
+  // warm gold/white is what makes the burst read as sparkle rather than
+  // "red dots flew off the div."
+  const SPARKLE_COLORS = ["#ff4d6d", "#ffd76a", "#fff6e0"];
+
+  function spawnSparkles(rect) {
+    const host = document.createElement("div");
+    host.className = "focustube-poof-sparkles";
+    host.style.left = `${rect.left}px`;
+    host.style.top = `${rect.top}px`;
+    host.style.width = `${rect.width}px`;
+    host.style.height = `${rect.height}px`;
+
+    const flash = document.createElement("div");
+    flash.className = "focustube-poof-flash";
+    host.appendChild(flash);
+
+    const spread = Math.max(rect.width, rect.height);
+
+    // Scale particle counts with element size so a small chip gets a
+    // light dusting and a whole shelf gets a fuller burst, capped either
+    // way so this never turns into hundreds of nodes for a huge shelf.
+    const starCount = Math.min(18, Math.max(8, Math.round((rect.width + rect.height) / 28)));
+    for (let i = 0; i < starCount; i++) {
+      const s = document.createElement("span");
+      s.className = "focustube-sparkle";
+      const angle = (Math.PI * 2 * i) / starCount + Math.random() * 0.8;
+      const dist = spread * (0.25 + Math.random() * 0.55);
+      const size = 5 + Math.random() * 9;
+      const color = SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)];
+      s.style.left = `${5 + Math.random() * 90}%`;
+      s.style.top = `${5 + Math.random() * 90}%`;
+      s.style.width = `${size}px`;
+      s.style.height = `${size}px`;
+      s.style.marginLeft = `${-size / 2}px`;
+      s.style.marginTop = `${-size / 2}px`;
+      s.style.background = color;
+      s.style.boxShadow = `0 0 ${4 + size / 2}px 1px ${color}`;
+      s.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+      s.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+      s.style.animationDelay = `${Math.random() * 140}ms`;
+      host.appendChild(s);
+    }
+
+    const dustCount = Math.min(14, Math.max(6, Math.round((rect.width + rect.height) / 40)));
+    for (let i = 0; i < dustCount; i++) {
+      const d = document.createElement("span");
+      d.className = "focustube-dust";
+      const angle = Math.random() * Math.PI * 2;
+      const dist = spread * (0.15 + Math.random() * 0.45);
+      const size = 3 + Math.random() * 4;
+      d.style.left = `${Math.random() * 100}%`;
+      d.style.top = `${Math.random() * 100}%`;
+      d.style.width = `${size}px`;
+      d.style.height = `${size}px`;
+      d.style.marginLeft = `${-size / 2}px`;
+      d.style.marginTop = `${-size / 2}px`;
+      d.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+      d.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+      d.style.animationDelay = `${Math.random() * 180}ms`;
+      host.appendChild(d);
+    }
+
+    document.body.appendChild(host);
+    setTimeout(() => host.remove(), SPARKLE_LIFETIME_MS);
+  }
+
   // `reason` (optional) is stored as the attribute's value instead of a
   // plain "true" flag, so a specific category can later reveal just its
   // own hides via revealByReason() below without disturbing anything
@@ -293,9 +375,42 @@
     if (!el || !el.style) return false;
     if (el.getAttribute && el.getAttribute("data-focustube-hidden")) return false;
     if (containsMainPlayer(el)) return false;
-    el.style.setProperty("display", "none", "important");
     if (el.setAttribute) el.setAttribute("data-focustube-hidden", reason || "true");
+
+    let rect = null;
+    try {
+      rect = el.getBoundingClientRect();
+    } catch (e) {
+      // ignore — falls through to the plain instant hide below
+    }
+    if (rect && rect.width > 0 && rect.height > 0) {
+      spawnSparkles(rect);
+      el.classList.add("focustube-poof");
+      const timeoutId = setTimeout(() => {
+        pendingPoofs.delete(el);
+        el.classList.remove("focustube-poof");
+        el.style.setProperty("display", "none", "important");
+      }, POOF_DURATION_MS);
+      pendingPoofs.set(el, timeoutId);
+    } else {
+      // Not laid out (e.g. already display:none upstream) — nothing to
+      // animate away, so skip straight to the actual hide.
+      el.style.setProperty("display", "none", "important");
+    }
     return true;
+  }
+
+  // Cancels an in-flight poof (if any) and strips the animation class,
+  // so a reveal that lands mid-animation snaps the element straight back
+  // to normal instead of leaving it stuck mid-fade or racing the timeout
+  // that would otherwise still hide it a moment later.
+  function cancelPoof(el) {
+    const timeoutId = pendingPoofs.get(el);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      pendingPoofs.delete(el);
+    }
+    if (el.classList) el.classList.remove("focustube-poof");
   }
 
   function findAndHideContainer(el) {
@@ -310,6 +425,7 @@
   // instead of just pausing future hides.
   function revealAll() {
     for (const el of deepQueryAll("[data-focustube-hidden]")) {
+      cancelPoof(el);
       el.style.removeProperty("display");
       el.removeAttribute("data-focustube-hidden");
     }
@@ -325,6 +441,7 @@
   // supposed to be hidden.
   function revealByReason(reason) {
     for (const el of deepQueryAll(`[data-focustube-hidden="${reason}"]`)) {
+      cancelPoof(el);
       el.style.removeProperty("display");
       el.removeAttribute("data-focustube-hidden");
     }

@@ -215,3 +215,156 @@ html.focustube-calm-mode ytd-playlist-thumbnail:hover img {
   filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(0) !important;
   transform: none !important;
 }
+
+/* ---- Magic disappear (see spawnSparkles() in content.js) --------------
+   hideEl() used to flip display:none the instant something matched — a
+   blocked video just vanished mid-frame, which reads as the page
+   glitching rather than the extension doing something on purpose. This
+   class plays a shrink/lift/fade on the element itself while
+   spawnSparkles() layers a warm light flash, a burst of multicolor
+   sparkle stars that fly outward and twinkle, and a trail of drifting
+   fairy-dust motes over its former position — so a block reads as a
+   deliberate "poof, gone" trick instead of a layout error. Purely
+   cosmetic — hideEl() still ends the exact same way, with display:none
+   !important, just ~420ms later. */
+.focustube-poof {
+  transition: opacity 0.42s ease-in, transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.42s ease-in !important;
+  opacity: 0 !important;
+  transform: scale(0.62) rotate(5deg) translateY(-8px) !important;
+  filter: blur(4px) saturate(1.7) brightness(1.2) !important;
+  pointer-events: none !important;
+}
+
+/* Fixed-position host for one element's whole magic burst (flash +
+   sparkles + dust), sized/positioned in JS to match the
+   getBoundingClientRect() of the element being hidden at the moment the
+   poof starts — removed again once the burst finishes. overflow: visible
+   because sparkles fly outward past the original element's edges. */
+.focustube-poof-sparkles {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  overflow: visible !important;
+}
+
+/* A soft warm flash centered on the element, the "burst of light" beat
+   that sells the magic before the sparkles fly — screen blend so it
+   glows against dark YouTube chrome instead of just painting a flat
+   circle over it. */
+.focustube-poof-flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 55%;
+  height: 55%;
+  margin-left: -27.5%;
+  margin-top: -27.5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 246, 224, 0.95) 0%,
+    rgba(255, 215, 106, 0.6) 35%,
+    rgba(255, 77, 109, 0.3) 60%,
+    rgba(255, 77, 109, 0) 78%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: focustube-flash-pop 0.5s ease-out forwards;
+}
+
+@keyframes focustube-flash-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  30% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+/* A single 4-point sparkle/star. Starting position is a random point
+   within the burst host (set via inline left/top percent in JS); the
+   --dx/--dy custom properties (also set in JS, one outward direction per
+   star) drive the keyframe's translate so each one flies a different
+   distance and bearing. The multi-stop opacity below is the "twinkle" —
+   glitter doesn't just fade once, it flickers. Color and glow color come
+   from JS (a mixed gold/white/brand-red palette — real glitter is never
+   one flat color). */
+.focustube-sparkle {
+  position: absolute;
+  clip-path: polygon(
+    50% 0%,
+    61% 39%,
+    100% 50%,
+    61% 61%,
+    50% 100%,
+    39% 61%,
+    0% 50%,
+    39% 39%
+  );
+  opacity: 0;
+  animation: focustube-sparkle-pop 0.62s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes focustube-sparkle-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.25), calc(var(--dy) * 0.25)) scale(1.2) rotate(60deg);
+  }
+  38% {
+    opacity: 0.45;
+    transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * 0.5)) scale(0.7) rotate(120deg);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.72), calc(var(--dy) * 0.72)) scale(1) rotate(170deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.15) rotate(230deg);
+  }
+}
+
+/* Tiny soft-glow dust motes — smaller and rounder than the sparkle
+   stars, drifting outward and gently upward (like fairy dust catching
+   air) a bit longer than the stars so a faint shimmer lingers for a
+   beat after the element itself is already gone. */
+.focustube-dust {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 215, 106, 0.75) 45%,
+    rgba(255, 215, 106, 0) 75%
+  );
+  opacity: 0;
+  animation: focustube-dust-drift 0.75s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes focustube-dust-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+  25% {
+    opacity: 0.9;
+    transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3 - 6px)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), calc(var(--dy) - 20px)) scale(0.4);
+  }
+}

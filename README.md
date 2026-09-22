@@ -549,3 +549,19 @@ picking the next one, and commit the manifest bump this time so it
 doesn't happen again. `store-assets/popup-blocking.png` was
 regenerated to show the new toggle (see `store-assets/README.md`);
 `focus-tube-v3.8.1.zip` is packaged and ready to upload.
+
+**3.8.2 release notes:** purely a hide-animation change — `hideEl()`
+(`content.js`) no longer flips `display:none` the instant something's
+blocked; it now plays a brief shrink/lift/fade on the element plus a
+light flash, multicolor twinkling sparkle stars, and a fairy-dust trail
+(new `.focustube-poof`/`.focustube-poof-sparkles`/`.focustube-sparkle`/
+`.focustube-dust` rules in `content.css`) before finishing the hide
+~420ms later. No settings, toggles, or popup UI changed, and no new
+permissions were added. **Store assets were deliberately NOT
+regenerated this round** — `popup-blocking.png`, `popup-stats.png`, the
+promo tiles, and the `youtube-*.png` screenshots all show static state,
+and nothing static changed; the new effect is a transient animation a
+still screenshot can't show anyway. `manifest.json` bumped 3.8.1 →
+3.8.2 (confirmed 3.8.1 is what's actually live on the dashboard before
+picking this number — see the 3.8.1 note above for why that check
+matters). `focus-tube-v3.8.2.zip` is packaged and ready to upload.
