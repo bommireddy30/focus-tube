@@ -565,3 +565,37 @@ still screenshot can't show anyway. `manifest.json` bumped 3.8.1 →
 3.8.2 (confirmed 3.8.1 is what's actually live on the dashboard before
 picking this number — see the 3.8.1 note above for why that check
 matters). `focus-tube-v3.8.2.zip` is packaged and ready to upload.
+
+**3.8.3 release notes:** brings a different flavor of magic to Calm
+Mode's thumbnail blur/distort (`applyThumbnailBlur` in `content.js`) —
+hovering a thumbnail to un-blur it, and moving off to let it re-blur,
+now each pulse a soft warm glow around the thumbnail's edge (a new
+`spawnThumbnailGlow` helper, new `.focustube-thumb-glow` rule in
+`content.css`, pure `box-shadow`, no particles or moving parts), like
+the card is briefly outlined by a spell, then fades — so the reveal
+reads as a deliberate touch rather than a plain CSS filter snapping
+on/off. Deliberately a separate, calmer effect from the 3.8.2 hide
+animation's sparkle/dust burst rather than a reuse of it — this fires on
+every hover across a whole grid of thumbnails, not once per blocked
+video. `spawnSparkles()` itself is unchanged from 3.8.2.
+
+Landed here after two discarded attempts, both reused/built during this
+same release and swapped out on feedback before shipping: first, a
+scaled-down reuse of the block "poof" sparkle/dust burst (too busy
+repeated across a whole grid on every hover); then a diagonal shimmer
+sweep (still too showy, and its first cut had a real bug worth noting —
+sizing the effect's host off the `<img>` element's own
+`getBoundingClientRect()` picked up `THUMBNAIL_DISTORT_TRANSFORM`
+(`scale(1.16)` + skew), reporting a box bigger than, and skewed past,
+the actual visible thumbnail; since the host is a separate
+fixed-position element rather than a descendant of the thumbnail card,
+nothing clipped it back down, so the effect visibly bled into
+neighboring cards — confirmed worse still on YouTube's newer
+`yt-thumbnail-view-model` cards, whose ancestor chain doesn't contain
+any of the "known wrapper tag" guesses a first fix attempt checked for).
+The eventual fix — sizing off the image's immediate `parentElement`
+instead of any tag/class guess, confirmed by inspection to be a clean,
+untransformed, aspect-ratio-locked box (exactly 500×281.25, a true 16:9,
+vs. the img's own skewed ~621×357) on every layout checked — carried
+forward into `spawnThumbnailGlow`, so the final glow effect is correctly
+sized from the start. `manifest.json` bumped 3.8.2 → 3.8.3.

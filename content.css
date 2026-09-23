@@ -368,3 +368,44 @@ html.focustube-calm-mode ytd-playlist-thumbnail:hover img {
     transform: translate(var(--dx), calc(var(--dy) - 20px)) scale(0.4);
   }
 }
+
+/* ---- Thumbnail magic glow (see spawnThumbnailGlow() in content.js) ----
+   Calm Mode's thumbnail blur/warp (above) toggles instantly on hover; this
+   pulses a soft warm glow around the thumbnail's edge each time it crosses
+   that blur/clear boundary, like the card is briefly outlined by a spell,
+   then fades — no particles, no moving band, just a box-shadow bloom. A
+   deliberately calmer alternative to two earlier attempts (a sparkle/dust
+   burst reused from the block "poof," then a diagonal shimmer sweep) that
+   both read as too busy for something firing on every hover across a
+   whole grid of thumbnails. Fixed-position host sized to the thumbnail
+   img's PARENT element in JS — deliberately not the <img> itself, which
+   carries a scale/skew transform that would otherwise make the host
+   bigger than (and able to bleed past) the actual visible thumbnail; see
+   the comment on spawnThumbnailGlow() for why that distinction matters.
+   No overflow:hidden here (unlike the shimmer attempt before this) — the
+   glow is SUPPOSED to bloom slightly past the thumbnail's own edge, and
+   there's no child content that needs clipping to the box. */
+.focustube-thumb-glow {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  border-radius: 12px;
+  animation: focustube-thumb-glow-pulse 0.6s ease-out forwards;
+}
+
+/* Outer glow (plain box-shadow) plus a faint inset glow, so the pulse
+   reads as an edge lighting up from both sides rather than just a blurry
+   halo floating behind the thumbnail. Same warm gold/cream palette as
+   the rest of the "magic" system (SPARKLE_COLORS in content.js) for one
+   consistent look across the block "poof" and this. */
+@keyframes focustube-thumb-glow-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 106, 0), inset 0 0 0 0 rgba(255, 246, 224, 0);
+  }
+  30% {
+    box-shadow: 0 0 16px 3px rgba(255, 215, 106, 0.65), inset 0 0 14px 1px rgba(255, 246, 224, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 106, 0), inset 0 0 0 0 rgba(255, 246, 224, 0);
+  }
+}

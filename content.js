@@ -607,6 +607,48 @@
   const THUMBNAIL_NORMAL_TRANSFORM = "none";
   const THUMBNAIL_TRANSITION = "filter 0.15s ease-out, transform 0.15s ease-out";
 
+  // A different flavor of magic than the block "poof" burst above — a
+  // soft warm glow pulses once around the thumbnail's edge (the
+  // .focustube-thumb-glow rule in content.css) each time it crosses the
+  // blur/clear boundary, like the card is briefly outlined by a spell,
+  // then fades — no particles, no band, just a box-shadow bloom, since a
+  // diagonal shimmer sweep tried before this one read as too showy for
+  // something that fires on every hover across a whole grid of
+  // thumbnails (the block "poof" burst stays more dramatic — it only
+  // ever fires once per blocked video, not constantly).
+  const THUMBNAIL_GLOW_MS = 620; // matches the 0.6s pulse keyframe in content.css, plus a small buffer
+
+  function spawnThumbnailGlow(el) {
+    // Sized off the thumbnail img's PARENT element, not the <img> itself
+    // — the img carries THUMBNAIL_DISTORT_TRANSFORM (scale(1.16) + skew),
+    // so its own getBoundingClientRect() is bigger than, and skewed past,
+    // the actual visible thumbnail (confirmed this exact mismatch caused
+    // the earlier shimmer attempt to bleed into neighboring cards). The
+    // immediate parent is reliably the aspect-ratio-locked, untransformed
+    // box on every thumbnail layout checked — including YouTube's newer
+    // yt-thumbnail-view-model cards, where none of the "known" wrapper
+    // tags (ytd-thumbnail, yt-image, etc.) even appear in the ancestor
+    // chain — without needing to track YouTube's current tag/class names.
+    const container = (el && el.parentElement) || el;
+    let rect = null;
+    try {
+      rect = container.getBoundingClientRect();
+    } catch (e) {
+      return;
+    }
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
+
+    const host = document.createElement("div");
+    host.className = "focustube-thumb-glow";
+    host.style.left = `${rect.left}px`;
+    host.style.top = `${rect.top}px`;
+    host.style.width = `${rect.width}px`;
+    host.style.height = `${rect.height}px`;
+
+    document.body.appendChild(host);
+    setTimeout(() => host.remove(), THUMBNAIL_GLOW_MS);
+  }
+
   function applyThumbnailBlur() {
     const active = effectivelyEnabled() && !!settings.calmMode;
     for (const img of deepQueryAll(THUMBNAIL_IMG_SELECTOR)) {
@@ -626,10 +668,12 @@
       img.addEventListener("mouseenter", () => {
         img.style.setProperty("filter", THUMBNAIL_NORMAL_FILTER, "important");
         img.style.setProperty("transform", THUMBNAIL_NORMAL_TRANSFORM, "important");
+        spawnThumbnailGlow(img);
       });
       img.addEventListener("mouseleave", () => {
         img.style.setProperty("filter", THUMBNAIL_DISTORT_FILTER, "important");
         img.style.setProperty("transform", THUMBNAIL_DISTORT_TRANSFORM, "important");
+        spawnThumbnailGlow(img);
       });
       if (img.dataset) img.dataset.focustubeBlurred = "1";
     }
