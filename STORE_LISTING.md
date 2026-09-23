@@ -63,8 +63,8 @@ WHAT IT BLOCKS
 • Calm Mode — mutes YouTube's red urgency accents (including the YouTube
   logo itself) to a neutral color, hides the unread-notification badge,
   softly blurs and warps thumbnails to take the edge off clickbait
-  imagery (hover to see one clearly), and stops thumbnail hover-preview
-  autoplay.
+  imagery (hover to see one clearly, with a soft glow marking the
+  reveal), and stops thumbnail hover-preview autoplay.
 • Keywords — hide any video by title, channel name, or description
   text you choose, with an optional whole-word-only match mode.
 • Blocked Channels — hide every video from a channel you pick,
