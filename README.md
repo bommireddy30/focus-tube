@@ -599,3 +599,30 @@ untransformed, aspect-ratio-locked box (exactly 500×281.25, a true 16:9,
 vs. the img's own skewed ~621×357) on every layout checked — carried
 forward into `spawnThumbnailGlow`, so the final glow effect is correctly
 sized from the start. `manifest.json` bumped 3.8.2 → 3.8.3.
+
+**3.8.4 release notes:** extends Calm Mode's thumbnail blur to the
+end-of-video suggestion grid and in-video teaser card the YouTube
+player draws over itself — previously left completely untouched, at
+full clickbait intensity, while every other thumbnail on the page was
+already blurred. Missed because these are built differently: rendered
+by the player's own `ytp-*` chrome as plain `background-image` divs,
+not `<img src="...ytimg.com/vi/...">` elements — so neither
+`THUMBNAIL_IMG_SELECTOR` in `content.js` nor the `ytd-thumbnail
+img`-family rules in `content.css` (both keyed off being an `<img>`)
+ever matched them. First attempt at this (still in this same 3.8.4,
+never separately released) only covered `.ytp-videowall-still-image`
+and missed the actual fix — inspecting the live player's outerHTML
+after that attempt visibly failed showed YouTube renders **three**
+separate teaser/endscreen surfaces into the DOM, not one:
+`.ytp-videowall-still-image` (the legacy endscreen wall),
+`.ytp-modern-videowall-still-image` (the newer full-viewport grid,
+gated by `.ytp-fullscreen-grid-active` on the player — the one actually
+visible in the reported case), and `.ytp-ce-covering-image` (the small
+single-video teaser card that pops up in a corner during the last ~15s
+of playback, a wholly separate feature from the endscreen grid). All
+three get the same desaturate/hue-rotate/blur filter (no skew/scale —
+these divs lean on YouTube's own `background-size: cover` rather than
+an `<img>` we control, and skewing risked revealing the edge of the
+background instead of just warping it), with hover on each one's
+containing link/card clearing the blur the same way hovering any other
+thumbnail does. `manifest.json` bumped 3.8.3 → 3.8.4.

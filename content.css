@@ -216,6 +216,45 @@ html.focustube-calm-mode ytd-playlist-thumbnail:hover img {
   transform: none !important;
 }
 
+/* End-of-video suggestion grid ("video wall") the player itself draws
+   once a video finishes and autoplay hasn't already taken over — a
+   completely separate rendering path from the ytd-* Polymer card
+   thumbnails blurred above. The player renders each still as a plain
+   background-image div, not an <img>, so none of the img-targeted rules
+   above ever reach it. No skew here (unlike the grid thumbnails) since
+   these divs rely on YouTube's own background-size: cover rather than an
+   <img> we control — a skew would risk revealing the edge of the
+   background instead of just warping it. Hover (on the containing link)
+   clears it the same way hovering a grid thumbnail does.
+
+   Three separate class names, all confirmed present in the live DOM at
+   once (inspected via the player's own outerHTML) — YouTube renders more
+   than one endscreen layout into the page simultaneously and picks which
+   one is actually shown via CSS/JS state, so all three need covering
+   rather than picking "the" current one:
+     - .ytp-videowall-still-image — the classic/legacy endscreen wall
+       (absolutely-positioned tiles inside .ytp-endscreen-content)
+     - .ytp-modern-videowall-still-image — the newer full-viewport grid
+       (.ytp-fullscreen-grid-active on the player, tiles inside
+       .ytp-fullscreen-grid-stills-container) — this is the one actually
+       visible in the reported case
+     - .ytp-ce-covering-image — the small single-video teaser "card" that
+       pops up in a corner during the last ~15s of playback (a different
+       feature from the full endscreen grid, e.g. .ytp-ce-element), also
+       reported still unblurred */
+html.focustube-calm-mode .ytp-videowall-still-image,
+html.focustube-calm-mode .ytp-modern-videowall-still-image,
+html.focustube-calm-mode .ytp-ce-covering-image {
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(4.5px) !important;
+  transition: filter 0.15s ease-out !important;
+}
+
+html.focustube-calm-mode .ytp-videowall-still:hover .ytp-videowall-still-image,
+html.focustube-calm-mode .ytp-modern-videowall-still:hover .ytp-modern-videowall-still-image,
+html.focustube-calm-mode .ytp-ce-element:hover .ytp-ce-covering-image {
+  filter: saturate(0.3) contrast(0.85) brightness(0.96) hue-rotate(-12deg) blur(0) !important;
+}
+
 /* ---- Magic disappear (see spawnSparkles() in content.js) --------------
    hideEl() used to flip display:none the instant something matched — a
    blocked video just vanished mid-frame, which reads as the page
