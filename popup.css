@@ -610,6 +610,27 @@ h1 {
   opacity: 0.7;
 }
 
+.keyword-expiry-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin: -4px 0 10px 2px;
+  cursor: pointer;
+}
+.keyword-expiry-option input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.keyword-chip-expiry {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
 .keyword-list {
   display: flex;
   flex-wrap: wrap;

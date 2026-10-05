@@ -13,13 +13,23 @@ const DEFAULT_SETTINGS = {
   blockMixes: true,
   disableAutoplay: true,
   calmMode: true,
-  keywords: [],
+  keywords: [], // entries are either a plain string (blocks forever) or { word, expiresAt } when "auto-delete after 7 days" was checked at add time
   matchWholeWord: false,
   blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
   autoBlockAfterWatch: false, // once 60% of a video has been watched, block its channel AND its name everywhere else (see blockedNames)
   blockedNames: [], // [{ name, expiresAt }] — auto-added only; matches any video mentioning that name, any channel
   theme: "system", // "system" | "light" | "dark" — see applyTheme() in popup.js and the dark-theme comment in popup.css
 };
+
+const KEYWORD_AUTO_DELETE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Keyword entries are either a plain string or { word, expiresAt } (see
+// DEFAULT_SETTINGS.keywords) — this reads the word out of either shape so
+// every call site that matches/dedupes/renders keywords doesn't need to
+// care which one it has.
+function keywordWord(entry) {
+  return typeof entry === "string" ? entry : entry.word;
+}
 
 function defaultStats() {
   return { blockedCount: 0 };
@@ -178,6 +188,7 @@ const el = {
   themeDark: document.getElementById("themeDark"),
   keywordInput: document.getElementById("keywordInput"),
   addKeyword: document.getElementById("addKeyword"),
+  autoDeleteKeyword: document.getElementById("autoDeleteKeyword"),
   keywordList: document.getElementById("keywordList"),
   suggestedKeywordList: document.getElementById("suggestedKeywordList"),
   channelInput: document.getElementById("channelInput"),
@@ -275,16 +286,25 @@ function renderToggles() {
 
 function renderKeywords() {
   el.keywordList.innerHTML = "";
-  (currentSettings.keywords || []).forEach((word) => {
+  (currentSettings.keywords || []).forEach((entry) => {
+    const word = keywordWord(entry);
     const chip = document.createElement("span");
     chip.className = "keyword-chip";
     chip.textContent = word;
+
+    if (typeof entry !== "string" && typeof entry.expiresAt === "number") {
+      const daysLeft = Math.max(1, Math.ceil((entry.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
+      const badge = document.createElement("span");
+      badge.className = "keyword-chip-expiry";
+      badge.textContent = `· ${daysLeft}d`;
+      chip.appendChild(badge);
+    }
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "×";
     removeBtn.addEventListener("click", () => {
-      currentSettings.keywords = currentSettings.keywords.filter((w) => w !== word);
+      currentSettings.keywords = currentSettings.keywords.filter((w) => w !== entry);
       saveSettings();
       renderKeywords();
     });
@@ -304,9 +324,9 @@ function renderKeywords() {
 
 function toggleSuggestedKeyword(word) {
   const lower = word.toLowerCase();
-  const existing = new Set((currentSettings.keywords || []).map((w) => w.toLowerCase()));
+  const existing = new Set((currentSettings.keywords || []).map((w) => keywordWord(w).toLowerCase()));
   if (existing.has(lower)) {
-    currentSettings.keywords = currentSettings.keywords.filter((w) => w.toLowerCase() !== lower);
+    currentSettings.keywords = currentSettings.keywords.filter((w) => keywordWord(w).toLowerCase() !== lower);
   } else {
     currentSettings.keywords = [...(currentSettings.keywords || []), word];
   }
@@ -316,7 +336,7 @@ function toggleSuggestedKeyword(word) {
 
 function renderSuggestedKeywords() {
   el.suggestedKeywordList.innerHTML = "";
-  const existing = new Set((currentSettings.keywords || []).map((w) => w.toLowerCase()));
+  const existing = new Set((currentSettings.keywords || []).map((w) => keywordWord(w).toLowerCase()));
 
   SUGGESTED_KEYWORDS.forEach((group) => {
     const groupLabel = document.createElement("p");
@@ -816,12 +836,18 @@ function loadSettings() {
     currentSettings = { ...DEFAULT_SETTINGS, ...(result[SETTINGS_KEY] || {}) };
     const keptChannels = (currentSettings.blockedChannels || []).filter((c) => !isExpiredEntry(c));
     const keptNames = (currentSettings.blockedNames || []).filter((n) => !isExpiredEntry(n));
+    // isExpiredEntry(entry) reads entry.expiresAt — safe to call on a plain
+    // string keyword too, since property access on a string just yields
+    // undefined rather than throwing.
+    const keptKeywords = (currentSettings.keywords || []).filter((k) => !isExpiredEntry(k));
     if (
       keptChannels.length !== (currentSettings.blockedChannels || []).length ||
-      keptNames.length !== (currentSettings.blockedNames || []).length
+      keptNames.length !== (currentSettings.blockedNames || []).length ||
+      keptKeywords.length !== (currentSettings.keywords || []).length
     ) {
       currentSettings.blockedChannels = keptChannels;
       currentSettings.blockedNames = keptNames;
+      currentSettings.keywords = keptKeywords;
       saveSettings();
     }
     renderToggles();
@@ -882,10 +908,11 @@ function addKeywordFromInput() {
     .split(",")
     .map((p) => p.trim())
     .filter(Boolean);
-  const existing = new Set((currentSettings.keywords || []).map((w) => w.toLowerCase()));
+  const autoDelete = !!el.autoDeleteKeyword.checked;
+  const existing = new Set((currentSettings.keywords || []).map((w) => keywordWord(w).toLowerCase()));
   parts.forEach((p) => {
     if (!existing.has(p.toLowerCase())) {
-      currentSettings.keywords.push(p);
+      currentSettings.keywords.push(autoDelete ? { word: p, expiresAt: Date.now() + KEYWORD_AUTO_DELETE_MS } : p);
       existing.add(p.toLowerCase());
     }
   });

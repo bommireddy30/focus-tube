@@ -626,3 +626,13 @@ an `<img>` we control, and skewing risked revealing the edge of the
 background instead of just warping it), with hover on each one's
 containing link/card clearing the blur the same way hovering any other
 thumbnail does. `manifest.json` bumped 3.8.3 → 3.8.4.
+
+**3.8.5 release notes:** adds an "Auto-delete after 7 days" checkbox next
+to the Keywords add box. A keyword added with it ticked carries an
+`expiresAt` timestamp (reusing the same shape and the same
+`isExpiredEntry`/`purgeExpiredAutoBlocks` purge pass in `content.js`
+already used for the auto-block-after-watch feature's `blockedChannels`/
+`blockedNames` lists) and self-removes 7 days later instead of blocking
+forever; its chip shows the days remaining. Keyword entries added without
+the checkbox stay plain strings exactly as before, so existing stored
+keywords need no migration. `manifest.json` bumped 3.8.4 → 3.8.5.

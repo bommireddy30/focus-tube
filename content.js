@@ -36,7 +36,7 @@
     blockMixes: true,
     disableAutoplay: true,
     calmMode: true,
-    keywords: [],
+    keywords: [], // entries are either a plain string (blocks forever) or { word, expiresAt } when "auto-delete after 7 days" was checked in the popup at add time — see isExpiredEntry/purgeExpiredAutoBlocks below
     matchWholeWord: false, // false = substring match, true = whole-word only
     blockedChannels: [], // [{ id, name }] — id is the stable @handle/UCxxxx/legacy-slug when resolvable
     autoBlockAfterWatch: false, // once AUTO_BLOCK_WATCH_FRACTION of a video has been watched, block its channel AND its name everywhere else (see blockedNames)
@@ -723,14 +723,18 @@
   // description snippet matches a keyword you've added.
   function applyKeywordFilter() {
     if (!settings.keywords || settings.keywords.length === 0) return 0;
-    const lowerKeywords = settings.keywords.map((k) => k.toLowerCase()).filter(Boolean);
+    // Entries are either a plain string or { word, expiresAt } (see
+    // DEFAULT_SETTINGS.keywords) — pull the matchable text out of either.
+    const lowerKeywords = settings.keywords
+      .map((k) => (typeof k === "string" ? k : k.word || "").toLowerCase())
+      .filter(Boolean);
     if (lowerKeywords.length === 0) return 0;
     const wholeWord = !!settings.matchWholeWord;
 
     const scanned = scanCardsAgainstKeywords(lowerKeywords, wholeWord);
     let count = 0;
     for (const { container, matched } of scanned) {
-      if (matched && hideEl(container)) count++;
+      if (matched && hideEl(container, "keyword")) count++;
     }
     return count;
   }
@@ -1316,17 +1320,22 @@
     return d.getTime();
   }
 
-  // Only entries this feature added carry `expiresAt` — anything typed in
-  // by hand via the popup has none and is never purged. Shared by both
-  // blockedChannels and blockedNames entries, which use the same shape.
+  // blockedChannels/blockedNames entries this feature auto-adds carry
+  // `expiresAt`; anything typed in by hand via the popup has none and is
+  // never purged. Keyword entries are the one case where a user can opt a
+  // hand-typed entry into this too — ticking "auto-delete after 7 days" in
+  // the popup tags that keyword with `expiresAt` at add time. Property
+  // access on a plain string (an un-timed keyword) just yields undefined
+  // rather than throwing, so this is safe to call on any entry shape.
   function isExpiredEntry(entry) {
     return typeof entry.expiresAt === "number" && Date.now() >= entry.expiresAt;
   }
 
-  // Drops any auto-block entries (both lists) whose day has passed, so
-  // whatever got auto-blocked yesterday is watchable again today. Runs on
-  // every pass (regardless of the master enabled toggle, like
-  // maintainWatchTracking above) so the lists self-clean as soon as a
+  // Drops any expired entries across all three lists — auto-blocked
+  // channels/names whose day has passed, and keywords whose 7-day
+  // auto-delete has elapsed — so whatever expired is watchable/unblocked
+  // again. Runs on every pass (regardless of the master enabled toggle,
+  // like maintainWatchTracking above) so the lists self-clean as soon as a
   // YouTube tab is open, not just when a video happens to cross the
   // threshold again.
   function purgeExpiredAutoBlocks() {
@@ -1334,8 +1343,16 @@
     const keptChannels = channels.filter((c) => !isExpiredEntry(c));
     const names = settings.blockedNames || [];
     const keptNames = names.filter((n) => !isExpiredEntry(n));
-    if (keptChannels.length === channels.length && keptNames.length === names.length) return;
-    settings = { ...settings, blockedChannels: keptChannels, blockedNames: keptNames };
+    const keywords = settings.keywords || [];
+    const keptKeywords = keywords.filter((k) => !isExpiredEntry(k));
+    if (
+      keptChannels.length === channels.length &&
+      keptNames.length === names.length &&
+      keptKeywords.length === keywords.length
+    ) {
+      return;
+    }
+    settings = { ...settings, blockedChannels: keptChannels, blockedNames: keptNames, keywords: keptKeywords };
     try {
       chrome.storage.sync.set({ [SETTINGS_KEY]: settings });
     } catch (e) {
@@ -1343,6 +1360,7 @@
     }
     revealByReason("channel");
     revealByReason("name");
+    revealByReason("keyword");
   }
 
   // Single combined write for both lists — triggerAutoBlock's two additions
@@ -1595,6 +1613,10 @@
       // Same reasoning, for blockedNames — removing an auto-added name (or
       // letting it expire) should bring its matches back without a reload.
       revealByReason("name");
+      // Same reasoning, for keywords — removing one (or letting an
+      // auto-delete one expire) should bring its matches back without a
+      // reload too.
+      revealByReason("keyword");
       runAndPersist();
     }
   });
