@@ -34,6 +34,7 @@
     blockLooseShorts: true,
     blockShortsLinks: true,
     blockMixes: true,
+    blockEndscreenSuggestions: true, // removes the player's own end-of-video suggestion grid/teaser cards entirely — see ENDSCREEN_SELECTOR below
     disableAutoplay: true,
     calmMode: true,
     keywords: [], // entries are either a plain string (blocks forever) or { word, expiresAt } when "auto-delete after 7 days" was checked in the popup at add time — see isExpiredEntry/purgeExpiredAutoBlocks below
@@ -505,6 +506,39 @@
     return count;
   }
 
+  // The player's own end-of-video suggestions — the multi-thumbnail "video
+  // wall" grid shown once a video finishes, plus the single-video teaser
+  // card that pops up in a corner during the last ~15s of playback. These
+  // live inside the raw .ytp-* player chrome (not the surrounding ytd-*
+  // Polymer page), so none of the feed-card passes above (keyword filter,
+  // channel block, etc.) ever see them — confirmed report: a video/channel
+  // blocked everywhere else in the app still showed up here. Rather than
+  // trying to text-match each tile (fragile against the player's own
+  // layout churn — see THUMBNAIL_IMG_SELECTOR's comment on the same
+  // problem), this just removes the whole panel outright, every time.
+  //
+  // Three selectors because YouTube renders more than one endscreen layout
+  // into the page at once and switches between them via CSS/JS state — see
+  // the matching comment in content.css (added for Calm Mode's blur on
+  // these same elements) for how that was confirmed:
+  //   - .html5-endscreen — the classic videowall's outer container
+  //     (.ytp-endscreen-content > .ytp-videowall-still tiles)
+  //   - .ytp-modern-videowall-still — the newer full-viewport grid's tiles
+  //     (no shared outer container confirmed, so matched at the tile level)
+  //   - .ytp-ce-element — the corner teaser card during playback
+  // alreadyHandled() means hiding .html5-endscreen first makes the
+  // redundant .ytp-videowall-still matches inside it a no-op, not a bug.
+  const ENDSCREEN_SELECTOR = ".html5-endscreen, .ytp-modern-videowall-still, .ytp-ce-element";
+
+  function hideEndscreenSuggestions() {
+    let count = 0;
+    for (const el of deepQueryAll(ENDSCREEN_SELECTOR)) {
+      if (alreadyHandled(el)) continue;
+      if (hideEl(el, "endscreen")) count++;
+    }
+    return count;
+  }
+
   function findToggleSwitch(container) {
     if (
       container.hasAttribute &&
@@ -924,6 +958,10 @@
     if (settings.blockMixes) {
       hideChipsAndTabsByText("Mixes");
       hiddenCount += hideMixes();
+    }
+
+    if (settings.blockEndscreenSuggestions && surface === "watch") {
+      hiddenCount += hideEndscreenSuggestions();
     }
 
     hiddenCount += applyKeywordFilter();

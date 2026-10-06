@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   blockLooseShorts: true,
   blockShortsLinks: true,
   blockMixes: true,
+  blockEndscreenSuggestions: true, // removes the player's own end-of-video suggestion grid/teaser cards entirely
   disableAutoplay: true,
   calmMode: true,
   keywords: [], // entries are either a plain string (blocks forever) or { word, expiresAt } when "auto-delete after 7 days" was checked at add time
@@ -150,6 +151,7 @@ const TOGGLE_FIELDS = [
   "blockLooseShorts",
   "blockShortsLinks",
   "blockMixes",
+  "blockEndscreenSuggestions",
   "disableAutoplay",
   "calmMode",
   "matchWholeWord",
@@ -168,6 +170,7 @@ const BLOCK_SETTING_FIELDS = [
   "blockLooseShorts",
   "blockShortsLinks",
   "blockMixes",
+  "blockEndscreenSuggestions",
   "disableAutoplay",
   "calmMode",
 ];

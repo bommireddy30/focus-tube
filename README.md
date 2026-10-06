@@ -34,6 +34,20 @@ request back to youtube.com itself to read a video's category; see
   recommendation from an ordinary video — nearly everything a signed-in
   user sees is personalized to some degree, so a broader rule would risk
   hiding the entire Home feed.
+- **End-of-video suggestions** — the player's own suggestion grid ("video
+  wall") shown once a video finishes, plus the single-video teaser card
+  that pops up in a corner during the last ~15s of playback. These render
+  inside the raw `.ytp-*` player chrome rather than the surrounding `ytd-*`
+  page, so none of the feed-card passes (Keywords, Blocked Channels, etc.)
+  ever reach them — a channel or keyword blocked everywhere else in the app
+  could still turn up here. Rather than trying to text-match individual
+  tiles (the player renders more than one endscreen layout into the page at
+  once and switches between them via CSS/JS state — see Calm Mode's
+  thumbnail-blur section below for how that was confirmed), this removes
+  the whole panel outright: `.html5-endscreen` (classic videowall),
+  `.ytp-modern-videowall-still` (the newer full-viewport grid, matched at
+  the tile level since no shared outer container was confirmed), and
+  `.ytp-ce-element` (the corner teaser card).
 - **Autoplay** — finds the Autoplay toggle on a watch page, clicks it off
   if it's currently on, then hides the control so it can't be flipped back
   on from the UI. Unmetered, like the nav/chip passes, since it's removing
@@ -636,3 +650,21 @@ already used for the auto-block-after-watch feature's `blockedChannels`/
 forever; its chip shows the days remaining. Keyword entries added without
 the checkbox stay plain strings exactly as before, so existing stored
 keywords need no migration. `manifest.json` bumped 3.8.4 → 3.8.5.
+
+**3.8.6 release notes:** adds a new "End-of-video suggestions" toggle
+(default on) that removes the player's own end-of-video suggestion grid
+and corner teaser card entirely, rather than just blurring them as Calm
+Mode's 3.8.4 change did. Prompted by a report that a keyword/channel
+block (e.g. a specific actor's name) had no effect on this panel — these
+tiles render inside the raw `.ytp-*` player chrome, never reachable by
+the feed-card keyword/channel-block passes (`getOuterVideoItemContainers`
+only enumerates `ytd-*`/`yt-lockup-view-model`-family tags). Matching text
+per tile would hit the same multi-layout fragility Calm Mode's blur fix
+had to work around (`.html5-endscreen`, `.ytp-modern-videowall-still`,
+`.ytp-ce-element` all coexist in the DOM — see the Calm Mode section
+above), so this removes the whole panel outright instead — it also
+settles the user's secondary ask to drop end-of-video suggestions
+altogether. New `hideEndscreenSuggestions()` pass in `content.js`, gated
+behind the new `blockEndscreenSuggestions` setting (defaults to `true`,
+matching every other "What to block" toggle) and scoped to `surface ===
+"watch"` only. `manifest.json` bumped 3.8.5 → 3.8.6.

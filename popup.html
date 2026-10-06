@@ -45,7 +45,7 @@
       <span>What to block</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, autoplay, and Calm Mode's engagement-hook cleanup.</p>
+    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, end-of-video suggestions, autoplay, and Calm Mode's engagement-hook cleanup.</p>
     <div class="disclosure-body" id="settingsBody" hidden>
 
     <div class="row-group">
@@ -105,6 +105,15 @@
         <span class="row-sub">Auto-generated "Mixes for you" shelves and cards</span>
       </span>
       <input type="checkbox" id="blockMixes" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">End-of-video suggestions</span>
+        <span class="row-sub">Removes the suggestion grid and corner teaser card the player shows near/after a video ends</span>
+      </span>
+      <input type="checkbox" id="blockEndscreenSuggestions" />
       <span class="mini-toggle"></span>
     </label>
 
