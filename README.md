@@ -48,6 +48,20 @@ request back to youtube.com itself to read a video's category; see
   `.ytp-modern-videowall-still` (the newer full-viewport grid, matched at
   the tile level since no shared outer container was confirmed), and
   `.ytp-ce-element` (the corner teaser card).
+- **Explore more topics** — the chip shelf on Home/Subscriptions suggesting
+  other topics to browse ("Telugu film speeches", "Latest iPhone leaks",
+  etc., with a "Show more" expander). Same heading-based pass
+  (`hideShelvesByHeading`) the Shorts shelf already uses, matched on the
+  exact heading text "Explore more topics".
+- **Continue watching** — any video card showing YouTube's own "resume
+  where you left off" progress bar, wherever it shows up (Home,
+  Subscriptions, search, etc.) — matched structurally via the
+  `ytd-thumbnail-overlay-resume-playback-renderer` element YouTube renders
+  into the thumbnail for a partially-watched video, the same
+  "match by element, not text" approach `GENERIC_SHORTS_LINK` and
+  `MIX_LINK_SELECTOR` use. Deliberately skipped on the History page itself
+  — hiding every partially-watched video there would defeat the point of
+  that page.
 - **Autoplay** — finds the Autoplay toggle on a watch page, clicks it off
   if it's currently on, then hides the control so it can't be flipped back
   on from the UI. Unmetered, like the nav/chip passes, since it's removing
@@ -668,3 +682,23 @@ altogether. New `hideEndscreenSuggestions()` pass in `content.js`, gated
 behind the new `blockEndscreenSuggestions` setting (defaults to `true`,
 matching every other "What to block" toggle) and scoped to `surface ===
 "watch"` only. `manifest.json` bumped 3.8.5 → 3.8.6.
+
+**3.8.7 release notes:** adds two more "What to block" toggles, both
+default on. "Explore more topics" removes the Home/Subscriptions chip
+shelf suggesting other topics to browse — reuses the existing
+`hideShelvesByHeading()` pass (the same one Shorts shelves already use),
+matched on the exact heading text. "Continue watching" removes any video
+card carrying a "resume where you left off" progress bar, wherever it
+shows up — matched structurally via the
+`ytd-thumbnail-overlay-resume-playback-renderer` element YouTube renders
+into the thumbnail, the same "match by element, not text" approach
+`GENERIC_SHORTS_LINK`/`MIX_LINK_SELECTOR` already use, rather than
+scanning card text (which would've required guessing at a "you watched
+X%" string that doesn't actually appear as text anywhere on the card).
+Deliberately scoped to skip the History surface — hiding every
+partially-watched video there would defeat the point of that page.
+Also added `ytd-rich-section-renderer` to `CONTAINER_TAG_GUESSES` (the
+set `findAndHideContainer()` climbs toward), since the "Explore more
+topics" shelf — and other modern Home-feed sections like it — wraps in
+that tag rather than any of the previously-recognized shelf tags.
+`manifest.json` bumped 3.8.6 → 3.8.7.

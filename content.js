@@ -35,6 +35,8 @@
     blockShortsLinks: true,
     blockMixes: true,
     blockEndscreenSuggestions: true, // removes the player's own end-of-video suggestion grid/teaser cards entirely — see ENDSCREEN_SELECTOR below
+    blockExploreTopics: true, // removes the "Explore more topics" chip shelf on Home/Subscriptions
+    blockContinueWatching: true, // removes any video card showing a "resume where you left off" progress bar — see RESUME_OVERLAY_SELECTOR below
     disableAutoplay: true,
     calmMode: true,
     keywords: [], // entries are either a plain string (blocks forever) or { word, expiresAt } when "auto-delete after 7 days" was checked in the popup at add time — see isExpiredEntry/purgeExpiredAutoBlocks below
@@ -123,10 +125,10 @@
 
   const CONTAINER_TAG_GUESSES =
     "ytd-reel-shelf-renderer, ytd-shelf-renderer, ytd-rich-shelf-renderer, " +
-    "ytd-item-section-renderer, grid-shelf-view-model, yt-shelf-view-model, " +
-    "ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, " +
-    "ytd-grid-video-renderer, ytd-reel-item-renderer, yt-lockup-view-model, " +
-    "ytm-shorts-lockup-view-model";
+    "ytd-rich-section-renderer, ytd-item-section-renderer, grid-shelf-view-model, " +
+    "yt-shelf-view-model, ytd-rich-item-renderer, ytd-video-renderer, " +
+    "ytd-compact-video-renderer, ytd-grid-video-renderer, ytd-reel-item-renderer, " +
+    "yt-lockup-view-model, ytm-shorts-lockup-view-model";
 
   // Item-level only (no shelves/sections) — this is what keyword scanning
   // enumerates directly as "one video card" each. Deliberately narrower
@@ -502,6 +504,24 @@
     }
     for (const link of deepQueryAll(MIX_LINK_SELECTOR)) {
       if (findAndHideContainer(link)) count++;
+    }
+    return count;
+  }
+
+  // Any video card carrying this overlay is one you've started but not
+  // finished — YouTube renders it as a distinct custom element (a resume
+  // progress bar baked into the thumbnail) rather than plain text, so it's
+  // matched structurally the same way GENERIC_SHORTS_LINK/MIX_LINK_SELECTOR
+  // are above, not by scanning card text. Deliberately skipped on the
+  // History surface (see the blockContinueWatching call site in
+  // runAllPasses) — hiding every partially-watched video there would
+  // defeat the page's own purpose.
+  const RESUME_OVERLAY_SELECTOR = "ytd-thumbnail-overlay-resume-playback-renderer";
+
+  function hideContinueWatchingCards() {
+    let count = 0;
+    for (const overlay of deepQueryAll(RESUME_OVERLAY_SELECTOR)) {
+      if (findAndHideContainer(overlay)) count++;
     }
     return count;
   }
@@ -962,6 +982,14 @@
 
     if (settings.blockEndscreenSuggestions && surface === "watch") {
       hiddenCount += hideEndscreenSuggestions();
+    }
+
+    if (settings.blockExploreTopics && (surface === "home" || surface === "subscriptions")) {
+      hiddenCount += hideShelvesByHeading("Explore more topics");
+    }
+
+    if (settings.blockContinueWatching && surface !== "history") {
+      hiddenCount += hideContinueWatchingCards();
     }
 
     hiddenCount += applyKeywordFilter();

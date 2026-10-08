@@ -45,7 +45,7 @@
       <span>What to block</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, end-of-video suggestions, autoplay, and Calm Mode's engagement-hook cleanup.</p>
+    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, end-of-video suggestions, "Explore more topics," continue-watching cards, autoplay, and Calm Mode's engagement-hook cleanup.</p>
     <div class="disclosure-body" id="settingsBody" hidden>
 
     <div class="row-group">
@@ -114,6 +114,24 @@
         <span class="row-sub">Removes the suggestion grid and corner teaser card the player shows near/after a video ends</span>
       </span>
       <input type="checkbox" id="blockEndscreenSuggestions" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Explore more topics</span>
+        <span class="row-sub">The chip shelf suggesting other topics to browse, on Home and Subscriptions</span>
+      </span>
+      <input type="checkbox" id="blockExploreTopics" />
+      <span class="mini-toggle"></span>
+    </label>
+
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Continue watching</span>
+        <span class="row-sub">Video cards showing a "resume where you left off" progress bar, outside History</span>
+      </span>
+      <input type="checkbox" id="blockContinueWatching" />
       <span class="mini-toggle"></span>
     </label>
 
