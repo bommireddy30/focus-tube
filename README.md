@@ -702,3 +702,15 @@ set `findAndHideContainer()` climbs toward), since the "Explore more
 topics" shelf — and other modern Home-feed sections like it — wraps in
 that tag rather than any of the previously-recognized shelf tags.
 `manifest.json` bumped 3.8.6 → 3.8.7.
+
+**3.8.8 release notes:** the "rate us" button in the popup is now always
+visible instead of sitting below every card where most users never
+scrolled to it. It moved out of `<footer>` into its own `.rate-us-bar`,
+a direct child of `<body>` with `position: sticky; bottom: 0` (inside the
+footer, sticky could only stick within the footer's own box). It gets a
+gold rotating border (a conic-gradient on `border-box` driven by an
+`@property --rate-us-angle` animation) plus a pulsing gold glow, disabled
+under `prefers-reduced-motion`. Gold is a deliberate exception to the
+popup's grayscale palette, like the Watch Stats chart colors. Copy changed
+to "Rate us & help Focus Tube reach more people". `manifest.json` bumped
+3.8.7 → 3.8.8.

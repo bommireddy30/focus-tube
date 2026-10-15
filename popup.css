@@ -761,25 +761,77 @@ footer {
   opacity: 0.55;
 }
 
+/* Sticky so the ask is always visible at the bottom of the popup instead
+   of only after scrolling past every card. A direct child of <body> (not
+   inside <footer>) because sticky is bounded by its containing block — in
+   the footer it could only stick within the footer itself. The faded
+   backdrop keeps scrolled content from showing through around the pill. */
+.rate-us-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin: 0 -18px; /* bleed over body's side padding so the backdrop spans edge to edge */
+  padding: 14px 18px 10px;
+  background: linear-gradient(to bottom, transparent 0%, var(--bg-accent) 45%);
+}
+
+/* Animatable angle for the rotating border sweep — without @property a
+   custom property can't be interpolated, so the conic-gradient wouldn't move. */
+@property --rate-us-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 .rate-us-link {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 4px 0 10px 0;
   padding: 9px 14px;
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 700;
   text-decoration: none;
   color: #ffffff;
-  background: linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%);
-  box-shadow: 4px 4px 8px rgba(var(--accent-glow-rgb), 0.35), -2px -2px 6px rgba(var(--shadow-light-rgb), 0.5);
-  transition: box-shadow 0.1s, transform 0.1s;
+  /* Glowing border: the 2px transparent border reveals a rotating
+     conic-gradient on border-box, while the padding-box layer paints the
+     usual pill fill over the middle. Gold is a deliberate exception to the
+     grayscale design system (like the Watch Stats palette): it's the one
+     call-to-action meant to stand out, and gold reads as "rating/stars". */
+  --rate-us-gold-rgb: 245, 197, 66;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(150deg, var(--accent) 0%, var(--accent-dark) 100%) padding-box,
+    conic-gradient(
+      from var(--rate-us-angle),
+      rgba(var(--rate-us-gold-rgb), 0.15) 0deg,
+      rgba(var(--rate-us-gold-rgb), 1) 60deg,
+      rgba(var(--rate-us-gold-rgb), 0.15) 120deg,
+      rgba(var(--rate-us-gold-rgb), 0.15) 180deg,
+      rgba(var(--rate-us-gold-rgb), 1) 240deg,
+      rgba(var(--rate-us-gold-rgb), 0.15) 300deg
+    ) border-box;
+  box-shadow: 4px 4px 8px rgba(var(--accent-glow-rgb), 0.35), 0 0 0 rgba(var(--rate-us-gold-rgb), 0);
+  animation: rate-us-spin 3s linear infinite, rate-us-glow 2.4s ease-in-out infinite;
+  transition: transform 0.1s;
 }
 .rate-us-link:active {
-  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.25);
   transform: translateY(1px);
+}
+
+@keyframes rate-us-spin {
+  to { --rate-us-angle: 360deg; }
+}
+@keyframes rate-us-glow {
+  0%, 100% { box-shadow: 4px 4px 8px rgba(var(--accent-glow-rgb), 0.35), 0 0 4px rgba(var(--rate-us-gold-rgb), 0.35); }
+  50%      { box-shadow: 4px 4px 8px rgba(var(--accent-glow-rgb), 0.35), 0 0 14px rgba(var(--rate-us-gold-rgb), 0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rate-us-link {
+    animation: none;
+  }
 }
 .rate-us-star {
   font-size: 13px;
