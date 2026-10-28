@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Focus Tube – YouTube Shorts blockieren" },
-  "extDescription": { "message": "Blockiert YouTube Shorts, Mixe und Kanäle deiner Wahl. Erfasst die Wiedergabezeit nach Kategorie. Ablenkungsfrei, privat, kostenlos." },
+  "extName": { "message": "Focus Tube – YouTube Shorts ausblenden & blockieren" },
+  "extDescription": { "message": "Entfernt YouTube Shorts, Mixe & Autoplay. Sperrt Kanäle und Stichwörter, zeigt deine Wiedergabezeit. Ablenkungsfrei, privat, gratis." },
   "actionTitle": { "message": "Focus Tube-Einstellungen" },
 
   "statusOn": { "message": "Blockieren ist an" },

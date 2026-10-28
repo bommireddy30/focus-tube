@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "Focus Tube – YouTube ショートをブロック" },
-  "extDescription": { "message": "YouTube のショート、ミックス、指定したチャンネルをブロック。カテゴリ別の視聴時間も記録します。集中できて、プライベートで、無料。" },
+  "extName": { "message": "Focus Tube – YouTube ショート動画を非表示・ブロック" },
+  "extDescription": { "message": "YouTubeのショート動画を非表示に。ミックス・自動再生・指定したチャンネルやキーワードもブロックし、視聴時間を記録。無料・登録不要・プライバシー重視。" },
   "actionTitle": { "message": "Focus Tube の設定" },
 
   "statusOn": { "message": "ブロック中" },

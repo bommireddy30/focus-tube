@@ -737,3 +737,15 @@ under `prefers-reduced-motion`. Gold is a deliberate exception to the
 popup's grayscale palette, like the Watch Stats chart colors. Copy changed
 to "Rate us & help Focus Tube reach more people". `manifest.json` bumped
 3.8.7 → 3.8.8.
+
+**3.8.10 release notes:** listing/ASO-only release, no code or behavior
+changes. Reworded the store name and summary (`extName`/`extDescription`)
+in `_locales/en`, `de`, and `ja` to lead with each market's main search
+phrase ("Hide & Block YouTube Shorts", "ausblenden & blockieren",
+"非表示・ブロック"), and added a partial `_locales/hi` (name, summary,
+action title only — the popup falls back to English per key) so Hindi
+Chrome users in India get a Hindi listing. `STORE_LISTING.md` now holds
+per-language dashboard descriptions for en/de/ja/hi plus the ASO
+rationale. After uploading, paste those descriptions into the
+dashboard's per-language Store listing entries. `manifest.json` bumped
+3.8.9 → 3.8.10. `focus-tube-v3.8.10.zip` is packaged and ready to upload.
