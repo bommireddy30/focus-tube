@@ -124,26 +124,32 @@ function formatDuration(totalSeconds) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m`;
-  return `${sec}s`;
+  if (h > 0) return I18N.t("durationHM", [h, m]);
+  if (m > 0) return I18N.t("durationM", [m]);
+  return I18N.t("durationS", [sec]);
 }
 
 // Suggestions only — nothing here is applied automatically. Picked to be
 // fairly specific clickbait/outrage phrasing rather than generic single
 // words (e.g. "prank" or "reaction"), since a broad word risks silently
 // hiding videos from channels someone actually wants to watch — the whole
-// point is these read as a deliberate, informed choice per word.
-const SUGGESTED_KEYWORDS = [
-  {
-    category: "Rage bait & hostility",
-    words: ["exposed", "slams", "destroys", "obliterates", "meltdown", "outrage", "backlash", "controversy"],
-  },
-  {
-    category: "Clickbait & hype",
-    words: ["you won't believe", "shocking", "gone wrong", "clickbait", "must watch", "game changer"],
-  },
+// point is these read as a deliberate, informed choice per word. Each
+// locale has its own word list (comma-separated in messages.json), since
+// a suggestion only helps if it matches titles in the language you watch.
+const SUGGESTED_KEYWORD_GROUPS = [
+  { labelKey: "suggestedRageBait", wordsKey: "suggestedRageBaitWords" },
+  { labelKey: "suggestedClickbait", wordsKey: "suggestedClickbaitWords" },
 ];
+
+function suggestedKeywords() {
+  return SUGGESTED_KEYWORD_GROUPS.map((group) => ({
+    category: I18N.t(group.labelKey),
+    words: I18N.t(group.wordsKey)
+      .split(",")
+      .map((w) => w.trim())
+      .filter(Boolean),
+  }));
+}
 
 const TOGGLE_FIELDS = [
   "enabled",
@@ -279,7 +285,7 @@ function renderToggles() {
   });
 
   el.settings.classList.toggle("disabled", !currentSettings.enabled);
-  el.statusLabel.textContent = currentSettings.enabled ? "Blocking is on" : "Blocking is off";
+  el.statusLabel.textContent = I18N.t(currentSettings.enabled ? "statusOn" : "statusOff");
 
   el.playerActionChoice.classList.toggle("disabled", !currentSettings.blockShortsPlayer);
   el.pillVideo.classList.toggle("selected", currentSettings.shortsPlayerAction === "video");
@@ -305,13 +311,14 @@ function renderKeywords() {
       const daysLeft = Math.max(1, Math.ceil((entry.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)));
       const badge = document.createElement("span");
       badge.className = "keyword-chip-expiry";
-      badge.textContent = `· ${daysLeft}d`;
+      badge.textContent = I18N.t("keywordDaysLeft", [daysLeft]);
       chip.appendChild(badge);
     }
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "×";
+    removeBtn.setAttribute("aria-label", I18N.t("remove"));
     removeBtn.addEventListener("click", () => {
       currentSettings.keywords = currentSettings.keywords.filter((w) => w !== entry);
       saveSettings();
@@ -347,7 +354,7 @@ function renderSuggestedKeywords() {
   el.suggestedKeywordList.innerHTML = "";
   const existing = new Set((currentSettings.keywords || []).map((w) => keywordWord(w).toLowerCase()));
 
-  SUGGESTED_KEYWORDS.forEach((group) => {
+  suggestedKeywords().forEach((group) => {
     const groupLabel = document.createElement("p");
     groupLabel.className = "suggested-group-label";
     groupLabel.textContent = group.category;
@@ -428,11 +435,12 @@ function renderChannelList() {
     // expiresAt only ever appears on entries this feature added itself
     // (see triggerAutoBlock in content.js) — anything typed in by hand has
     // none, so this label only ever shows up on the ones that'll expire.
-    chip.textContent = channel.name + (channel.expiresAt ? " (today)" : "");
+    chip.textContent = channel.expiresAt ? I18N.t("todaySuffix", [channel.name]) : channel.name;
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "×";
+    removeBtn.setAttribute("aria-label", I18N.t("remove"));
     removeBtn.addEventListener("click", () => {
       currentSettings.blockedChannels = currentSettings.blockedChannels.filter(
         (c) => !isSameChannel(c, channel)
@@ -457,11 +465,12 @@ function renderBlockedNamesList() {
   names.forEach((entry) => {
     const chip = document.createElement("span");
     chip.className = "keyword-chip channel-chip";
-    chip.textContent = entry.name + " (today)";
+    chip.textContent = I18N.t("todaySuffix", [entry.name]);
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "×";
+    removeBtn.setAttribute("aria-label", I18N.t("remove"));
     removeBtn.addEventListener("click", () => {
       currentSettings.blockedNames = currentSettings.blockedNames.filter((n) => n.name !== entry.name);
       saveSettings();
@@ -596,7 +605,7 @@ function renderCategoryPie() {
       angle += span;
       if (end <= start) return ""; // slice too thin to render once the gap is subtracted
       const d = donutSlicePath(PIE_CENTER, PIE_CENTER, PIE_OUTER_R, PIE_INNER_R, start, end);
-      return `<path d="${d}" fill="${slice.color}"><title>${escapeHtml(slice.name)} — ${formatDuration(slice.seconds)}</title></path>`;
+      return `<path d="${d}" fill="${slice.color}"><title>${escapeHtml(I18N.category(slice.name))} — ${formatDuration(slice.seconds)}</title></path>`;
     })
     .join("");
 
@@ -613,7 +622,7 @@ function renderCategoryLegend() {
     const empty = document.createElement("p");
     empty.className = "section-sub";
     empty.style.margin = "0";
-    empty.textContent = "No watch time recorded yet.";
+    empty.textContent = I18N.t("noWatchTime");
     el.categoryLegend.appendChild(empty);
     return;
   }
@@ -624,7 +633,7 @@ function renderCategoryLegend() {
     row.className = "category-legend-row";
     row.innerHTML = `
       <span class="category-legend-swatch" style="background:${slice.color}"></span>
-      <span class="category-legend-name">${escapeHtml(slice.name)}</span>
+      <span class="category-legend-name">${escapeHtml(I18N.category(slice.name))}</span>
       <span class="category-legend-pct">${pct}%</span>
       <span class="category-legend-time">${formatDuration(slice.seconds)}</span>
     `;
@@ -649,7 +658,7 @@ function renderLastVideo() {
   let timeText = formatDuration(last.seconds);
   if (last.lengthSeconds > 0) {
     const pct = Math.min(100, Math.round((last.seconds / last.lengthSeconds) * 100));
-    timeText += ` of ${formatDuration(last.lengthSeconds)} (${pct}%)`;
+    timeText = I18N.t("watchedOfLength", [timeText, formatDuration(last.lengthSeconds), pct]);
   }
 
   const tagsHtml =
@@ -661,7 +670,7 @@ function renderLastVideo() {
     <div class="last-video-info">
       <span class="last-video-title" title="${escapeHtml(last.title)}">${escapeHtml(last.title)}</span>
       <span class="last-video-meta">
-        <span class="last-video-category" style="background:${color}">${escapeHtml(last.category)}</span>
+        <span class="last-video-category" style="background:${color}">${escapeHtml(I18N.category(last.category))}</span>
         <span>${timeText}</span>
       </span>
       ${tagsHtml}
@@ -692,7 +701,7 @@ function renderRecencyBar() {
     const empty = document.createElement("p");
     empty.className = "section-sub";
     empty.style.margin = "0";
-    empty.textContent = "No watch time recorded yet.";
+    empty.textContent = I18N.t("noWatchTime");
     el.recencyLegend.appendChild(empty);
     return;
   }
@@ -703,14 +712,14 @@ function renderRecencyBar() {
     seg.className = "recency-segment";
     seg.style.flex = `${pct} 0 0`;
     seg.style.background = RECENCY_COLOR_TABLE[bucket.name] || RECENCY_COLOR_TABLE.Unknown;
-    seg.title = `${bucket.name} — ${formatDuration(bucket.seconds)}`;
+    seg.title = `${I18N.recency(bucket.name)} — ${formatDuration(bucket.seconds)}`;
     el.recencyBar.appendChild(seg);
 
     const row = document.createElement("div");
     row.className = "category-legend-row";
     row.innerHTML = `
       <span class="category-legend-swatch" style="background:${RECENCY_COLOR_TABLE[bucket.name] || RECENCY_COLOR_TABLE.Unknown}"></span>
-      <span class="category-legend-name">${escapeHtml(bucket.name)}</span>
+      <span class="category-legend-name">${escapeHtml(I18N.recency(bucket.name))}</span>
       <span class="category-legend-pct">${Math.round(pct)}%</span>
       <span class="category-legend-time">${formatDuration(bucket.seconds)}</span>
     `;
@@ -753,7 +762,7 @@ function startOfWeek(date) {
 }
 
 function formatShortDate(date) {
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return date.toLocaleDateString(I18N.locale, { month: "short", day: "numeric" });
 }
 
 function renderTimeSpent() {
@@ -770,7 +779,7 @@ function renderTimeSpent() {
     const d = new Date(todayStart);
     d.setDate(d.getDate() - offset);
     const seconds = dailyTotals[localDateKey(d)] || 0;
-    const label = offset === 0 ? "Today" : offset === 1 ? "Yesterday" : formatShortDate(d);
+    const label = offset === 0 ? I18N.t("today") : offset === 1 ? I18N.t("yesterday") : formatShortDate(d);
     return { label, seconds, current: offset === 0 };
   });
 
@@ -784,7 +793,7 @@ function renderTimeSpent() {
     const seconds = sumDailyTotalsInRange(dailyTotals, start, end);
     const endInclusive = new Date(end);
     endInclusive.setDate(endInclusive.getDate() - 1);
-    const label = offset === 0 ? "This week" : offset === 1 ? "Last week" : "2 weeks ago";
+    const label = I18N.t(offset === 0 ? "thisWeek" : offset === 1 ? "lastWeek" : "twoWeeksAgo");
     const sub = `${formatShortDate(start)} – ${formatShortDate(endInclusive)}`;
     return { label, sub, seconds, current: offset === 0 };
   });
@@ -794,8 +803,9 @@ function renderTimeSpent() {
     const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
     const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
     const seconds = sumDailyTotalsInRange(dailyTotals, start, end);
-    const monthName = start.toLocaleDateString(undefined, { month: "long" });
-    const label = offset === 0 ? "This month" : start.getFullYear() !== now.getFullYear() ? `${monthName} ${start.getFullYear()}` : monthName;
+    const sameYear = start.getFullYear() === now.getFullYear();
+    const monthName = start.toLocaleDateString(I18N.locale, sameYear ? { month: "long" } : { month: "long", year: "numeric" });
+    const label = offset === 0 ? I18N.t("thisMonth") : monthName;
     return { label, seconds, current: offset === 0 };
   });
 
@@ -957,6 +967,11 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
-loadSettings();
-loadStats();
-loadCategoryStats();
+// Strings resolve only once i18n.js knows whether a test locale override
+// is active (see the top of i18n.js), so nothing renders before then.
+I18N.ready.then(() => {
+  I18N.translateDom();
+  loadSettings();
+  loadStats();
+  loadCategoryStats();
+});

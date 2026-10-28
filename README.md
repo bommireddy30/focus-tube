@@ -462,6 +462,29 @@ were already open:
 If something seems stuck even after that, check for a red "Errors" button
 on the extension's card first — that's usually the real story.
 
+## Languages (English, Japanese, German)
+
+All popup text, plus the extension's name and description, lives in
+`_locales/<lang>/messages.json` (`en`, `ja`, `de`). Chrome picks the file
+from the browser's UI language automatically and falls back to English
+for anything else. YouTube category names are stored in English and only
+translated when the popup shows them (`cat_*` / `recency_*` keys).
+
+**Testing a language without changing your browser** (popup only; these
+bypass Chrome's own locale pick):
+- Open the popup as a tab with `?lang=`:
+  `chrome-extension://<extension-id>/popup.html?lang=ja` (or `de`, `en`).
+  The ID is on Focus Tube's card in `chrome://extensions`.
+- Or force it in the real toolbar popup: right-click the popup → Inspect →
+  Console → `chrome.storage.local.set({ focusTubeLocaleOverride: "ja" })`,
+  then reopen the popup. Undo with
+  `chrome.storage.local.remove("focusTubeLocaleOverride")`.
+
+**Testing the real browser-language behavior** (also localizes the name
+on `chrome://extensions` and the toolbar tooltip): set Chrome's language
+in Settings → Languages and restart, or launch a separate profile with
+`chrome.exe --lang=ja --user-data-dir=%TEMP%\ft-ja`.
+
 ## Load it locally to test (Firefox)
 
 Firefox supports Manifest V3 but is stricter about a couple of fields.

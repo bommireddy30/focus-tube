@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Focus Tube – Block YouTube Shorts",
-  "version": "3.8.8",
-  "description": "Blocks YouTube Shorts, Mixes, and channels you choose. Tracks your watch time by category. Distraction-free, private, and free.",
+  "name": "__MSG_extName__",
+  "version": "3.8.9",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "permissions": ["storage"],
   "host_permissions": ["*://*.youtube.com/*"],
   "background": {
@@ -23,7 +24,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Focus Tube settings"
+    "default_title": "__MSG_actionTitle__"
   },
   "icons": {
     "16": "icons/icon16.png",

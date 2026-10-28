@@ -13,7 +13,7 @@
       </div>
       <div>
         <h1>Focus Tube</h1>
-        <p class="status-label" id="statusLabel">Blocking is on</p>
+        <p class="status-label" id="statusLabel" data-i18n="statusOn">Blocking is on</p>
       </div>
     </div>
     <label class="toggle">
@@ -23,50 +23,50 @@
   </header>
 
   <div class="pill-choice theme-switch" id="themeSwitch">
-    <button type="button" class="pill" data-value="system" id="themeSystem">Auto</button>
-    <button type="button" class="pill" data-value="light" id="themeLight">Light</button>
-    <button type="button" class="pill" data-value="dark" id="themeDark">Dark</button>
+    <button type="button" class="pill" data-value="system" id="themeSystem" data-i18n="themeAuto">Auto</button>
+    <button type="button" class="pill" data-value="light" id="themeLight" data-i18n="themeLight">Light</button>
+    <button type="button" class="pill" data-value="dark" id="themeDark" data-i18n="themeDark">Dark</button>
   </div>
 
   <section class="card stat-card">
     <span class="stat-number" id="countNumber">0</span>
-    <span class="stat-label">blocked total</span>
+    <span class="stat-label" data-i18n="blockedTotal">blocked total</span>
   </section>
 
   <div class="tab-bar" id="tabBar">
-    <button type="button" class="tab-btn selected" data-tab="blocking">Blocking</button>
-    <button type="button" class="tab-btn" data-tab="stats">Watch Stats</button>
+    <button type="button" class="tab-btn selected" data-tab="blocking" data-i18n="tabBlocking">Blocking</button>
+    <button type="button" class="tab-btn" data-tab="stats" data-i18n="tabStats">Watch Stats</button>
   </div>
 
   <div id="tabPanelBlocking" class="tab-panel">
 
   <section class="card settings" id="settings">
     <button type="button" class="disclosure section-heading" id="settingsToggle" data-target="settingsBody" aria-expanded="false">
-      <span>What to block</span>
+      <span data-i18n="whatToBlockHeading">What to block</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Shorts (player, shelves, search, links), Mixes, end-of-video suggestions, "Explore more topics," continue-watching cards, autoplay, and Calm Mode's engagement-hook cleanup.</p>
+    <p class="section-sub" data-i18n="whatToBlockSub">Shorts (player, shelves, search, links), Mixes, end-of-video suggestions, "Explore more topics," continue-watching cards, autoplay, and Calm Mode's engagement-hook cleanup.</p>
     <div class="disclosure-body" id="settingsBody" hidden>
 
     <div class="row-group">
       <label class="row">
         <span class="row-text">
-          <span class="row-title">The Shorts player</span>
-          <span class="row-sub">Opening a /shorts/ link</span>
+          <span class="row-title" data-i18n="shortsPlayerTitle">The Shorts player</span>
+          <span class="row-sub" data-i18n="shortsPlayerSub">Opening a /shorts/ link</span>
         </span>
         <input type="checkbox" id="blockShortsPlayer" />
         <span class="mini-toggle"></span>
       </label>
       <div class="pill-choice" id="playerActionChoice">
-        <button type="button" class="pill" data-value="video" id="pillVideo">Open as a video</button>
-        <button type="button" class="pill" data-value="home" id="pillHome">Send me home</button>
+        <button type="button" class="pill" data-value="video" id="pillVideo" data-i18n="pillOpenAsVideo">Open as a video</button>
+        <button type="button" class="pill" data-value="home" id="pillHome" data-i18n="pillSendHome">Send me home</button>
       </div>
     </div>
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Shorts shelves</span>
-        <span class="row-sub">The carousels on Home and Subscriptions</span>
+        <span class="row-title" data-i18n="shelvesTitle">Shorts shelves</span>
+        <span class="row-sub" data-i18n="shelvesSub">The carousels on Home and Subscriptions</span>
       </span>
       <input type="checkbox" id="blockShelves" />
       <span class="mini-toggle"></span>
@@ -74,8 +74,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Shorts in search</span>
-        <span class="row-sub">Results and shelves on the search page</span>
+        <span class="row-title" data-i18n="searchShortsTitle">Shorts in search</span>
+        <span class="row-sub" data-i18n="searchShortsSub">Results and shelves on the search page</span>
       </span>
       <input type="checkbox" id="blockSearchShorts" />
       <span class="mini-toggle"></span>
@@ -83,8 +83,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Loose Shorts</span>
-        <span class="row-sub">In feeds, History, channels and up-next</span>
+        <span class="row-title" data-i18n="looseShortsTitle">Loose Shorts</span>
+        <span class="row-sub" data-i18n="looseShortsSub">In feeds, History, channels and up-next</span>
       </span>
       <input type="checkbox" id="blockLooseShorts" />
       <span class="mini-toggle"></span>
@@ -92,8 +92,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Shorts links</span>
-        <span class="row-sub">Sidebar entry, filter chip, channel tab</span>
+        <span class="row-title" data-i18n="shortsLinksTitle">Shorts links</span>
+        <span class="row-sub" data-i18n="shortsLinksSub">Sidebar entry, filter chip, channel tab</span>
       </span>
       <input type="checkbox" id="blockShortsLinks" />
       <span class="mini-toggle"></span>
@@ -101,8 +101,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Mixes</span>
-        <span class="row-sub">Auto-generated "Mixes for you" shelves and cards</span>
+        <span class="row-title" data-i18n="mixesTitle">Mixes</span>
+        <span class="row-sub" data-i18n="mixesSub">Auto-generated "Mixes for you" shelves and cards</span>
       </span>
       <input type="checkbox" id="blockMixes" />
       <span class="mini-toggle"></span>
@@ -110,8 +110,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">End-of-video suggestions</span>
-        <span class="row-sub">Removes the suggestion grid and corner teaser card the player shows near/after a video ends</span>
+        <span class="row-title" data-i18n="endscreenTitle">End-of-video suggestions</span>
+        <span class="row-sub" data-i18n="endscreenSub">Removes the suggestion grid and corner teaser card the player shows near/after a video ends</span>
       </span>
       <input type="checkbox" id="blockEndscreenSuggestions" />
       <span class="mini-toggle"></span>
@@ -119,8 +119,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Explore more topics</span>
-        <span class="row-sub">The chip shelf suggesting other topics to browse, on Home and Subscriptions</span>
+        <span class="row-title" data-i18n="exploreTopicsTitle">Explore more topics</span>
+        <span class="row-sub" data-i18n="exploreTopicsSub">The chip shelf suggesting other topics to browse, on Home and Subscriptions</span>
       </span>
       <input type="checkbox" id="blockExploreTopics" />
       <span class="mini-toggle"></span>
@@ -128,8 +128,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Continue watching</span>
-        <span class="row-sub">Video cards showing a "resume where you left off" progress bar, outside History</span>
+        <span class="row-title" data-i18n="continueWatchingTitle">Continue watching</span>
+        <span class="row-sub" data-i18n="continueWatchingSub">Video cards showing a "resume where you left off" progress bar, outside History</span>
       </span>
       <input type="checkbox" id="blockContinueWatching" />
       <span class="mini-toggle"></span>
@@ -137,8 +137,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Autoplay</span>
-        <span class="row-sub">Turns off and removes the autoplay toggle on watch pages</span>
+        <span class="row-title" data-i18n="autoplayTitle">Autoplay</span>
+        <span class="row-sub" data-i18n="autoplaySub">Turns off and removes the autoplay toggle on watch pages</span>
       </span>
       <input type="checkbox" id="disableAutoplay" />
       <span class="mini-toggle"></span>
@@ -146,8 +146,8 @@
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Calm Mode</span>
-        <span class="row-sub">Mutes red accents (including the YouTube logo) to slate blue, hides the notification unread count, softly blurs and warps thumbnails (hover to see clearly), disables thumbnail hover-preview</span>
+        <span class="row-title" data-i18n="calmModeTitle">Calm Mode</span>
+        <span class="row-sub" data-i18n="calmModeSub">Mutes red accents (including the YouTube logo) to slate blue, hides the notification unread count, softly blurs and warps thumbnails (hover to see clearly), disables thumbnail hover-preview</span>
       </span>
       <input type="checkbox" id="calmMode" />
       <span class="mini-toggle"></span>
@@ -158,14 +158,14 @@
 
   <section class="card keywords-card" id="keywordsCard">
     <button type="button" class="disclosure section-heading" id="keywordsToggle" data-target="keywordsBody" aria-expanded="false">
-      <span>Keywords</span>
+      <span data-i18n="keywordsHeading">Keywords</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Hides any video whose title, channel, or description matches.</p>
+    <p class="section-sub" data-i18n="keywordsSub">Hides any video whose title, channel, or description matches.</p>
     <div class="disclosure-body" id="keywordsBody" hidden>
 
     <button type="button" class="disclosure suggested-toggle" id="suggestedToggle" data-target="suggestedBody" aria-expanded="false">
-      <span class="suggested-label">Suggested &mdash; tap to add</span>
+      <span class="suggested-label" data-i18n="suggestedToggle">Suggested &mdash; tap to add</span>
       <span class="disclosure-chevron"></span>
     </button>
     <div class="disclosure-body" id="suggestedBody" hidden>
@@ -173,19 +173,19 @@
     </div>
 
     <div class="keyword-input-row">
-      <input type="text" id="keywordInput" placeholder="e.g. drama, gossip, prank" />
-      <button type="button" id="addKeyword" class="btn-clay">Add</button>
+      <input type="text" id="keywordInput" data-i18n-placeholder="keywordPlaceholder" placeholder="e.g. drama, gossip, prank" />
+      <button type="button" id="addKeyword" class="btn-clay" data-i18n="addButton">Add</button>
     </div>
     <label class="keyword-expiry-option">
       <input type="checkbox" id="autoDeleteKeyword" />
-      <span>Auto-delete after 7 days</span>
+      <span data-i18n="autoDeleteKeyword">Auto-delete after 7 days</span>
     </label>
     <div class="keyword-list" id="keywordList"></div>
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Match whole words only</span>
-        <span class="row-sub">Off: "war" also matches "software". On: exact word only.</span>
+        <span class="row-title" data-i18n="matchWholeWordTitle">Match whole words only</span>
+        <span class="row-sub" data-i18n="matchWholeWordSub">Off: "war" also matches "software". On: exact word only.</span>
       </span>
       <input type="checkbox" id="matchWholeWord" />
       <span class="mini-toggle"></span>
@@ -196,31 +196,31 @@
 
   <section class="card" id="channelsCard">
     <button type="button" class="disclosure section-heading" id="channelsToggle" data-target="channelsBody" aria-expanded="false">
-      <span>Blocked Channels</span>
+      <span data-i18n="channelsHeading">Blocked Channels</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Hides every video from a channel, everywhere &mdash; more reliable than YouTube's own "Don't recommend."</p>
+    <p class="section-sub" data-i18n="channelsSub">Hides every video from a channel, everywhere &mdash; more reliable than YouTube's own "Don't recommend."</p>
     <div class="disclosure-body" id="channelsBody" hidden>
 
-    <p class="section-sub">Covers Home, Search, Subscriptions, and up-next. YouTube's own "Don't recommend this channel" is only a soft hint to the algorithm &mdash; it doesn't touch Search, and can fade over time. This is unconditional.</p>
+    <p class="section-sub" data-i18n="channelsDetail">Covers Home, Search, Subscriptions, and up-next. YouTube's own "Don't recommend this channel" is only a soft hint to the algorithm &mdash; it doesn't touch Search, and can fade over time. This is unconditional.</p>
 
     <div class="keyword-input-row">
-      <input type="text" id="channelInput" placeholder="Channel name, or its URL/@handle" />
-      <button type="button" id="addChannel" class="btn-clay">Add</button>
+      <input type="text" id="channelInput" data-i18n-placeholder="channelPlaceholder" placeholder="Channel name, or its URL/@handle" />
+      <button type="button" id="addChannel" class="btn-clay" data-i18n="addButton">Add</button>
     </div>
     <div class="keyword-list" id="channelList"></div>
 
     <label class="row">
       <span class="row-text">
-        <span class="row-title">Auto-block after watching 60%</span>
-        <span class="row-sub">Once you've watched 60% of a video, its channel is added above automatically &mdash; and its name is blocked everywhere else too, in case a different channel features the same person. Both clear at midnight.</span>
+        <span class="row-title" data-i18n="autoBlockTitle">Auto-block after watching 60%</span>
+        <span class="row-sub" data-i18n="autoBlockSub">Once you've watched 60% of a video, its channel is added above automatically &mdash; and its name is blocked everywhere else too, in case a different channel features the same person. Both clear at midnight.</span>
       </span>
       <input type="checkbox" id="autoBlockAfterWatch" />
       <span class="mini-toggle"></span>
     </label>
 
     <div id="blockedNamesRow" hidden>
-      <p class="section-sub">Also blocking any video that mentions these names today, on any channel:</p>
+      <p class="section-sub" data-i18n="blockedNamesIntro">Also blocking any video that mentions these names today, on any channel:</p>
       <div class="keyword-list" id="blockedNamesList"></div>
     </div>
 
@@ -232,14 +232,14 @@
   <div id="tabPanelStats" class="tab-panel hidden">
 
   <section class="card">
-    <p class="section-heading">Watch time by category</p>
-    <p class="section-sub">By YouTube's own category for each video. Tracked locally on this device only &mdash; never sent anywhere.</p>
+    <p class="section-heading" data-i18n="categoryHeading">Watch time by category</p>
+    <p class="section-sub" data-i18n="categorySub">By YouTube's own category for each video. Tracked locally on this device only &mdash; never sent anywhere.</p>
 
     <div class="category-pie-wrap">
-      <svg id="categoryPie" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Watch time by category"></svg>
+      <svg id="categoryPie" width="150" height="150" viewBox="0 0 150 150" role="img" data-i18n-aria-label="pieAriaLabel" aria-label="Watch time by category"></svg>
       <div class="category-pie-total">
         <span class="value" id="totalWatchTime">0m</span>
-        <span class="label">watched</span>
+        <span class="label" data-i18n="watched">watched</span>
       </div>
     </div>
 
@@ -248,24 +248,24 @@
 
   <section class="card">
     <button type="button" class="disclosure section-heading" id="timeSpentToggle" data-target="timeSpentBody" aria-expanded="false">
-      <span>Time spent</span>
+      <span data-i18n="timeSpentHeading">Time spent</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">All-time, plus this and the last two months, weeks, and days.</p>
+    <p class="section-sub" data-i18n="timeSpentSub">All-time, plus this and the last two months, weeks, and days.</p>
     <div class="disclosure-body" id="timeSpentBody" hidden>
 
       <div class="time-stat-hero">
-        <span class="time-stat-label">All time</span>
+        <span class="time-stat-label" data-i18n="allTime">All time</span>
         <span class="time-stat-value" id="timeAllTotal">0m</span>
       </div>
 
-      <p class="time-stat-group-label">By month</p>
+      <p class="time-stat-group-label" data-i18n="byMonth">By month</p>
       <div class="time-stat-group" id="timeByMonth"></div>
 
-      <p class="time-stat-group-label">By week</p>
+      <p class="time-stat-group-label" data-i18n="byWeek">By week</p>
       <div class="time-stat-group" id="timeByWeek"></div>
 
-      <p class="time-stat-group-label">By day</p>
+      <p class="time-stat-group-label" data-i18n="byDay">By day</p>
       <div class="time-stat-group" id="timeByDay"></div>
 
     </div>
@@ -273,10 +273,10 @@
 
   <section class="card">
     <button type="button" class="disclosure section-heading" id="recencyToggle" data-target="recencyBody" aria-expanded="false">
-      <span>Watch time by upload age</span>
+      <span data-i18n="recencyHeading">Watch time by upload age</span>
       <span class="disclosure-chevron"></span>
     </button>
-    <p class="section-sub">Whether you're mostly watching recent uploads or older videos.</p>
+    <p class="section-sub" data-i18n="recencySub">Whether you're mostly watching recent uploads or older videos.</p>
     <div class="disclosure-body" id="recencyBody" hidden>
       <div id="recencyBar" class="recency-bar"></div>
       <div id="recencyLegend" class="category-legend"></div>
@@ -284,9 +284,9 @@
   </section>
 
   <section class="card" id="recentVideosCard">
-    <p class="section-heading">Last watched</p>
+    <p class="section-heading" data-i18n="lastWatchedHeading">Last watched</p>
     <div id="lastVideoCard" class="last-video-card"></div>
-    <p class="section-sub empty-note" id="recentVideosEmpty">Open a video on YouTube to start tracking.</p>
+    <p class="section-sub empty-note" id="recentVideosEmpty" data-i18n="lastWatchedEmpty">Open a video on YouTube to start tracking.</p>
   </section>
 
   </div>
@@ -294,15 +294,16 @@
   <div class="rate-us-bar">
     <a class="rate-us-link" href="https://chromewebstore.google.com/detail/kaajofnjggbnmehghhdkaagpipdlkogl?utm_source=item-share-cb" target="_blank" rel="noopener noreferrer">
       <span class="rate-us-star" aria-hidden="true">&#9733;</span>
-      <span>Rate us &amp; help Focus Tube reach more people</span>
+      <span data-i18n="rateUs">Rate us &amp; help Focus Tube reach more people</span>
     </a>
   </div>
 
   <footer>
-    <span class="footer-note">Changes apply instantly</span>
-    <span class="footer-note footer-disclaimer">Unofficial &middot; not affiliated with YouTube or Google</span>
+    <span class="footer-note" data-i18n="changesApply">Changes apply instantly</span>
+    <span class="footer-note footer-disclaimer" data-i18n="disclaimer">Unofficial &middot; not affiliated with YouTube or Google</span>
   </footer>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
