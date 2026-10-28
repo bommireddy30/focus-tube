@@ -229,16 +229,16 @@ https://github.com/bommireddy30/focus-tube
 
 ---
 
-## Localized assets (optional, per language)
+## Localized assets (per language)
 
-The dashboard accepts separate screenshots and promo tiles per listing
-language. Highest-value order: `ja` (Japanese users strongly prefer
-Japanese UI in screenshots), then `de`. Regenerate `popup-blocking.png`
-and `popup-stats.png` with the popup forced to that language
-(`popup.html?lang=ja` — see `i18n.js`) through the same Playwright/Edge
-template described in `store-assets/README.md`, and translate the
-composite headline copy. The three `youtube-*.png` screenshots can stay
-shared across languages.
+Ready: `store-assets/ja/` and `store-assets/de/` each hold
+`popup-blocking.png` and `popup-stats.png` (1280x800, 24-bit, no
+alpha): the real popup rendered in that language with the same demo data
+as the English shots, plus translated headline/pill copy. In the
+dashboard, switch the listing language to Japanese/German and upload
+those two in place of the English popup screenshots. The three
+`youtube-*.png` screenshots and the promo tiles stay shared across
+languages. Regenerate with `store-assets/capture-localized.js`.
 
 ## Off-listing signals (they move ranking as much as copy does)
 

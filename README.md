@@ -749,3 +749,15 @@ per-language dashboard descriptions for en/de/ja/hi plus the ASO
 rationale. After uploading, paste those descriptions into the
 dashboard's per-language Store listing entries. `manifest.json` bumped
 3.8.9 → 3.8.10. `focus-tube-v3.8.10.zip` is packaged and ready to upload.
+
+**3.8.11 release notes:** fixes two popup layout bugs that only showed in
+German and Japanese, found while capturing localized store screenshots.
+The Blocked Channels/Keywords add row let a long button label
+("Hinzufügen") push past the card edge, because the flex `<input>` kept
+its default ~20-character minimum width (`min-width: 0` in `popup.css`).
+The Watch Stats donut's center total ("3 h 55 min", "3時間55分")
+overflowed the ring; `fitPieTotalToHole()` in `popup.js` now shrinks
+it to fit. English is unaffected ("3h 55m" already fit). Adds
+`store-assets/ja/` and `store-assets/de/` localized screenshots plus the
+`store-assets/capture-localized.js` script that generates them.
+`manifest.json` bumped 3.8.10 → 3.8.11.

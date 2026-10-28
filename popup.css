@@ -596,6 +596,7 @@ h1 {
 }
 .keyword-input-row input {
   flex: 1;
+  min-width: 0; /* else the input's default ~20-char width pushes long localized button labels ("Hinzufügen") out of the card */
   border: none;
   border-radius: 14px;
   padding: 10px 14px;

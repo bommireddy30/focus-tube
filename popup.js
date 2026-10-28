@@ -580,10 +580,29 @@ function donutSlicePath(cx, cy, outerR, innerR, startAngle, endAngle) {
   ].join(" ");
 }
 
+// The total sits inside the donut hole, which is only PIE_INNER_R * 2 px
+// wide. "3h 55m" fits at the CSS size, but localized durations ("3 h 55 min",
+// "3時間55分") don't, so shrink the font until the text clears the ring.
+// Measured with a canvas rather than layout because the Stats tab may be
+// hidden (display:none, zero width) when this renders.
+let pieTotalMeasureCtx = null;
+function fitPieTotalToHole() {
+  const value = el.totalWatchTime;
+  value.style.fontSize = "";
+  const style = getComputedStyle(value);
+  const size = parseFloat(style.fontSize);
+  pieTotalMeasureCtx = pieTotalMeasureCtx || document.createElement("canvas").getContext("2d");
+  pieTotalMeasureCtx.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
+  const width = pieTotalMeasureCtx.measureText(value.textContent).width;
+  const maxWidth = PIE_INNER_R * 2 - 12;
+  if (width > maxWidth) value.style.fontSize = `${Math.max(10, Math.floor((size * maxWidth) / width))}px`;
+}
+
 function renderCategoryPie() {
   const totals = currentCategoryStats.totals || {};
   const grandTotal = Object.values(totals).reduce((sum, v) => sum + v, 0);
   el.totalWatchTime.textContent = formatDuration(grandTotal);
+  fitPieTotalToHole();
 
   if (grandTotal <= 0) {
     // Empty state: an unfilled track, same idiom as a meter with nothing in it.

@@ -113,3 +113,21 @@ realistic-looking popup before opening it. Used clearly-generic demo
 values throughout (a fictional channel name/handle, a generic
 "How Neural Networks Actually Learn" video title) — nothing resembling
 a real creator or real personal viewing history.
+
+## Localized screenshots (`ja/`, `de/`)
+
+`ja/popup-blocking.png`, `ja/popup-stats.png`, `de/popup-blocking.png`,
+`de/popup-stats.png` — the same two branded popup screenshots, with the
+popup forced to that language (`popup.html?lang=xx`) and the composite's
+headline, sub-copy, pills, and footer translated. Upload them under the
+matching language in the dashboard's Store listing; everything else is
+shared with English.
+
+Unlike the English originals, the template for these is checked in:
+`capture-localized.js` loads the extension into Edge (see the
+`--load-extension` note above), seeds demo data through the service
+worker, captures both tabs per language, and composites each into the
+1280x800 frame. Its output keeps an alpha channel, so re-save as 24-bit
+RGB before uploading (e.g. System.Drawing `Format24bppRgb` on Windows).
+Japanese headlines carry explicit `<br>`s — without them the browser
+breaks mid-word (チャ/ンネル).
