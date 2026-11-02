@@ -256,11 +256,18 @@
     return text;
   }
 
+  // Scripts written without spaces between words (Thai, Lao, Myanmar, Khmer,
+  // Japanese kana, CJK ideographs) have no word boundaries to match
+  // against, so whole-word mode falls back to substring for those keywords.
+  const UNSPACED_SCRIPT_RE = /[฀-໿က-႟ក-៿぀-ヿ㐀-鿿]/;
+
   function matchesKeyword(haystackLower, keywordLower, wholeWord) {
-    if (!wholeWord) return haystackLower.includes(keywordLower);
+    if (!wholeWord || UNSPACED_SCRIPT_RE.test(keywordLower)) return haystackLower.includes(keywordLower);
     const escaped = keywordLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     try {
-      return new RegExp(`\\b${escaped}\\b`, "i").test(haystackLower);
+      // Unicode-aware boundaries: plain \b is ASCII-only, so it never matched
+      // around letters like "ș" (Romanian) or "ố" (Vietnamese).
+      return new RegExp(`(?<![\\p{L}\\p{M}\\p{N}_])${escaped}(?![\\p{L}\\p{M}\\p{N}_])`, "iu").test(haystackLower);
     } catch (e) {
       return haystackLower.includes(keywordLower);
     }

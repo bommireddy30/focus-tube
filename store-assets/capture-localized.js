@@ -1,6 +1,7 @@
 // Regenerates store-assets/<lang>/popup-{blocking,stats}.png (see README).
 // Usage: npm i playwright-core (anywhere), then
-//   node capture-localized.js <extensionDir> <outDir>
+//   node capture-localized.js <extensionDir> <outDir> [lang,lang,...]
+// (omit the language list to regenerate every language in COPY)
 // Writes *.rgba.png composites; convert to 24-bit no-alpha before upload.
 const { chromium } = require("playwright-core");
 const fs = require("fs");
@@ -9,6 +10,7 @@ const os = require("os");
 
 const EXT = path.resolve(process.argv[2]);
 const OUT = path.resolve(process.argv[3]);
+const LANGS = process.argv[4] ? process.argv[4].split(",") : null;
 const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 
 const COPY = {
@@ -39,6 +41,90 @@ const COPY = {
       pills: ["Kostenlos", "Privat", "Nur lokal", "Kein Konto"],
     },
     footer: "Kostenlos · Privat · Kein Konto",
+  },
+  id: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Blokir Shorts, Mix & channel pilihan Anda",
+      sub: "Pemblokiran sungguhan, bukan sekadar saran – sembunyikan Shorts, Mix, dan channel mana pun di seluruh YouTube.",
+      pills: ["Gratis", "Privat", "Tanpa akun", "Tanpa iklan"],
+    },
+    stats: {
+      headline: "Lihat ke mana waktu YouTube Anda pergi",
+      sub: "Rincian per kategori YouTube, plus tren harian, mingguan, dan bulanan – hanya disimpan di perangkat Anda.",
+      pills: ["Gratis", "Privat", "Hanya lokal", "Tanpa akun"],
+    },
+    footer: "Gratis · Privat · Tanpa akun",
+  },
+  ms: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Sekat Shorts, Mix & saluran pilihan anda",
+      sub: "Penyekatan sebenar, bukan sekadar cadangan – sembunyikan Shorts, Mix dan mana-mana saluran di seluruh YouTube.",
+      pills: ["Percuma", "Peribadi", "Tiada akaun", "Tiada iklan"],
+    },
+    stats: {
+      headline: "Lihat ke mana masa YouTube anda pergi",
+      sub: "Pecahan mengikut kategori YouTube, serta trend harian, mingguan dan bulanan – disimpan pada peranti anda sahaja.",
+      pills: ["Percuma", "Peribadi", "Setempat sahaja", "Tiada akaun"],
+    },
+    footer: "Percuma · Peribadi · Tiada akaun",
+  },
+  fil: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "I-block ang Shorts, Mix at mga channel na pipiliin mo",
+      sub: "Tunay na pag-block, hindi lang mungkahi – itago ang Shorts, Mix at kahit anong channel sa buong YouTube.",
+      pills: ["Libre", "Pribado", "Walang account", "Walang ads"],
+    },
+    stats: {
+      headline: "Alamin kung saan napupunta ang oras mo sa YouTube",
+      sub: "Hati-hati ayon sa sariling kategorya ng YouTube, kasama ang trend bawat araw, linggo at buwan – nasa device mo lang.",
+      pills: ["Libre", "Pribado", "Sa device lang", "Walang account"],
+    },
+    footer: "Libre · Pribado · Walang account",
+  },
+  vi: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Chặn Shorts, Mix và kênh bạn chọn",
+      sub: "Chặn thật sự, không chỉ là gợi ý – ẩn Shorts, Mix và bất kỳ kênh nào trên toàn bộ YouTube.",
+      pills: ["Miễn phí", "Riêng tư", "Không quảng cáo"],
+    },
+    stats: {
+      headline: "Biết thời gian YouTube của bạn đi đâu",
+      sub: "Phân tích theo danh mục của YouTube, kèm xu hướng theo ngày, tuần, tháng – chỉ lưu trên thiết bị của bạn.",
+      pills: ["Miễn phí", "Riêng tư", "Trên máy", "Không tài khoản"],
+    },
+    footer: "Miễn phí · Riêng tư · Không cần tài khoản",
+  },
+  th: {
+    font: `"Leelawadee UI", "Segoe UI", sans-serif`,
+    blocking: {
+      headline: "บล็อก Shorts มิกซ์<br>และช่องที่คุณเลือก",
+      sub: "บล็อกจริง ไม่ใช่แค่คำแนะนำ<br>ซ่อน Shorts มิกซ์ และช่องใดก็ได้ทั่วทั้ง YouTube",
+      pills: ["ฟรี", "เป็นส่วนตัว", "ไม่ต้องมีบัญชี", "ไม่มีโฆษณา"],
+    },
+    stats: {
+      headline: "รู้ว่าเวลาบน YouTube<br>ของคุณหมดไปกับอะไร",
+      sub: "แยกตามหมวดหมู่ของ YouTube<br>พร้อมแนวโน้มรายวัน รายสัปดาห์ และรายเดือน<br>บันทึกในอุปกรณ์ ไม่ส่งไปที่ใด",
+      pills: ["ฟรี", "เป็นส่วนตัว", "เก็บในเครื่อง", "ไม่ต้องมีบัญชี"],
+    },
+    footer: "ฟรี · เป็นส่วนตัว · ไม่ต้องมีบัญชี",
+  },
+  ro: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Blochează Shorts, Mixuri și canalele alese de tine",
+      sub: "Blocare reală, nu doar o sugestie – ascunde Shorts, Mixurile și orice canal ales, peste tot pe YouTube.",
+      pills: ["Gratuit", "Privat", "Fără cont", "Fără reclame"],
+    },
+    stats: {
+      headline: "Vezi unde se duce timpul tău pe YouTube",
+      sub: "Defalcare pe categoriile oficiale YouTube, plus evoluția pe zile, săptămâni și luni – înregistrat local, nu este trimis nicăieri.",
+      pills: ["Gratuit", "Privat", "Doar local", "Fără cont"],
+    },
+    footer: "Gratuit · Privat · Fără cont",
   },
 };
 
@@ -107,7 +193,7 @@ function template(lang, kind, popupFile) {
   .left{position:absolute;left:64px;top:0;bottom:0;width:500px;display:flex;flex-direction:column;justify-content:center}
   .eyebrow{font:700 14px/1 "Segoe UI",sans-serif;letter-spacing:.12em;display:flex;align-items:center;gap:8px;margin-bottom:22px}
   .dot{width:8px;height:8px;border-radius:2px;background:#1C1C1C}
-  h1{font-weight:800;font-size:${lang === "ja" ? 40 : 44}px;line-height:1.22;margin:0 0 14px;letter-spacing:${lang === "ja" ? "0" : "-.01em"}}
+  h1{font-weight:800;font-size:${lang === "ja" ? 40 : 44}px;line-height:${lang === "th" ? 1.4 : 1.22};margin:0 0 14px;letter-spacing:${lang === "ja" ? "0" : "-.01em"}}
   p{font-size:${lang === "ja" ? 17 : 18}px;line-height:1.6;color:#585858;margin:0 0 26px}
   .pills{display:flex;flex-wrap:wrap;gap:12px}
   .pill{background:#fff;border-radius:999px;padding:10px 20px;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.07)}
@@ -144,7 +230,7 @@ function template(lang, kind, popupFile) {
     await chrome.storage.local.set({ focusTubeStats: d.stats, focusTubeCategoryStats: d.catStats });
   }, data);
 
-  for (const lang of Object.keys(COPY)) {
+  for (const lang of LANGS || Object.keys(COPY)) {
     for (const kind of ["blocking", "stats"]) {
       const page = await ctx.newPage();
       await page.setViewportSize({ width: 350, height: 1500 });

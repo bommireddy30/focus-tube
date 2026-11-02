@@ -462,10 +462,15 @@ were already open:
 If something seems stuck even after that, check for a red "Errors" button
 on the extension's card first — that's usually the real story.
 
-## Languages (English, Japanese, German)
+## Languages
+
+Full popup translations: English, Japanese, German, Indonesian,
+Malay, Filipino, Vietnamese, Thai, Romanian. Hindi localizes only the
+store name/summary (the popup falls back to English).
 
 All popup text, plus the extension's name and description, lives in
-`_locales/<lang>/messages.json` (`en`, `ja`, `de`). Chrome picks the file
+`_locales/<lang>/messages.json` (`en`, `ja`, `de`, `id`, `ms`, `fil`,
+`vi`, `th`, `ro`, plus a partial `hi`). Chrome picks the file
 from the browser's UI language automatically and falls back to English
 for anything else. YouTube category names are stored in English and only
 translated when the popup shows them (`cat_*` / `recency_*` keys).
@@ -473,7 +478,8 @@ translated when the popup shows them (`cat_*` / `recency_*` keys).
 **Testing a language without changing your browser** (popup only; these
 bypass Chrome's own locale pick):
 - Open the popup as a tab with `?lang=`:
-  `chrome-extension://<extension-id>/popup.html?lang=ja` (or `de`, `en`).
+  `chrome-extension://<extension-id>/popup.html?lang=ja` (or any code
+  in `SUPPORTED_LOCALES` in `i18n.js`).
   The ID is on Focus Tube's card in `chrome://extensions`.
 - Or force it in the real toolbar popup: right-click the popup → Inspect →
   Console → `chrome.storage.local.set({ focusTubeLocaleOverride: "ja" })`,
@@ -761,3 +767,19 @@ it to fit. English is unaffected ("3h 55m" already fit). Adds
 `store-assets/ja/` and `store-assets/de/` localized screenshots plus the
 `store-assets/capture-localized.js` script that generates them.
 `manifest.json` bumped 3.8.10 → 3.8.11.
+
+**3.8.12 release notes:** localizes the full popup, name, and summary into
+Indonesian (`id`), Malay (`ms`), Filipino (`fil`), Vietnamese (`vi`),
+Thai (`th`), and Romanian (`ro`), each with its own suggested-keyword
+lists and YouTube's category names in that language. `STORE_LISTING.md`
+gets a dashboard description per new language and the ASO table now
+covers Southeast Asia and Romania (Singapore, and most of Malaysia and the
+Philippines, are served by `en`). Also fixes whole-word keyword matching
+for non-English text: it used ASCII-only `\b`, so it never matched
+around letters like "ș" or "ố", and never matched Thai or Japanese at all.
+`matchesKeyword` in `content.js` now uses Unicode letter boundaries, and
+falls back to substring matching for keywords in scripts written without
+spaces (Thai, Lao, Myanmar, Khmer, Japanese, Chinese). `manifest.json`
+bumped 3.8.11 → 3.8.12. Adds localized store screenshots for all six
+languages (`store-assets/<lang>/`). `focus-tube-v3.8.12.zip` is packaged
+and ready to upload.

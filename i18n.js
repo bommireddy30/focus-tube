@@ -21,7 +21,7 @@
 
 const I18N = (() => {
   const LOCALE_OVERRIDE_KEY = "focusTubeLocaleOverride";
-  const SUPPORTED_LOCALES = ["en", "ja", "de"];
+  const SUPPORTED_LOCALES = ["en", "ja", "de", "id", "ms", "fil", "vi", "th", "ro"];
 
   let overrideMessages = null; // set only while an override is active
   let fallbackMessages = null; // English, for keys an override locale lacks
