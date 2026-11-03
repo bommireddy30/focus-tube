@@ -21,7 +21,10 @@
 
 const I18N = (() => {
   const LOCALE_OVERRIDE_KEY = "focusTubeLocaleOverride";
-  const SUPPORTED_LOCALES = ["en", "ja", "de", "id", "ms", "fil", "vi", "th", "ro"];
+  const SUPPORTED_LOCALES = [
+    "en", "ja", "de", "hi", "id", "ms", "fil", "vi", "th", "ro",
+    "pt_BR", "pt_PT", "es", "fr", "ru", "it", "ko", "zh_CN", "zh_TW", "tr", "pl", "nl", "uk",
+  ];
 
   let overrideMessages = null; // set only while an override is active
   let fallbackMessages = null; // English, for keys an override locale lacks
@@ -103,7 +106,7 @@ const I18N = (() => {
     if (!override || !SUPPORTED_LOCALES.includes(override)) return;
     try {
       [overrideMessages, fallbackMessages] = await Promise.all([loadMessages(override), loadMessages("en")]);
-      locale = override;
+      locale = override.replace("_", "-"); // folder names use pt_BR; lang attrs and Intl want pt-BR
     } catch (e) {
       overrideMessages = fallbackMessages = null; // fall back to chrome.i18n
     }

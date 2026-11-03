@@ -126,6 +126,202 @@ const COPY = {
     },
     footer: "Gratuit · Privat · Fără cont",
   },
+  hi: {
+    font: `"Nirmala UI", "Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Shorts, Mixes और आपके चुने चैनल ब्लॉक करें",
+      sub: "सिर्फ़ सुझाव नहीं, असली ब्लॉकिंग – पूरे YouTube पर Shorts, Mixes और कोई भी चैनल छिपाएं।",
+      pills: ["मुफ़्त", "प्राइवेट", "अकाउंट नहीं", "विज्ञापन नहीं"],
+    },
+    stats: {
+      headline: "देखें आपका YouTube का समय कहां जाता है",
+      sub: "YouTube की अपनी कैटेगरी के हिसाब से ब्योरा, साथ में दिन, हफ़्ते और महीने का ट्रेंड – सब सिर्फ़ आपके डिवाइस पर।",
+      pills: ["मुफ़्त", "प्राइवेट", "सिर्फ़ डिवाइस पर", "अकाउंट नहीं"],
+    },
+    footer: "मुफ़्त · प्राइवेट · अकाउंट नहीं",
+  },
+  pt_BR: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Bloqueie Shorts, Mixes e os canais que você escolher",
+      sub: "Bloqueio de verdade, não só uma sugestão – oculte Shorts, Mixes e qualquer canal em todo o YouTube.",
+      pills: ["Grátis", "Privado", "Sem conta", "Sem anúncios"],
+    },
+    stats: {
+      headline: "Veja para onde vai seu tempo no YouTube",
+      sub: "Divisão pelas categorias do próprio YouTube, mais tendências por dia, semana e mês – só no seu dispositivo.",
+      pills: ["Grátis", "Privado", "Só local", "Sem conta"],
+    },
+    footer: "Grátis · Privado · Sem conta",
+  },
+  pt_PT: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Bloqueie Shorts, Misturas e os canais que escolher",
+      sub: "Bloqueio a sério, não apenas uma sugestão – oculte Shorts, Misturas e qualquer canal em todo o YouTube.",
+      pills: ["Grátis", "Privado", "Sem conta", "Sem anúncios"],
+    },
+    stats: {
+      headline: "Veja para onde vai o seu tempo no YouTube",
+      sub: "Divisão pelas categorias do próprio YouTube, mais tendências por dia, semana e mês – apenas no seu dispositivo.",
+      pills: ["Grátis", "Privado", "Só local", "Sem conta"],
+    },
+    footer: "Grátis · Privado · Sem conta",
+  },
+  es: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Bloquea Shorts, Mixes y los canales que elijas",
+      sub: "Bloqueo real, no solo una sugerencia – oculta Shorts, Mixes y cualquier canal en todo YouTube.",
+      pills: ["Gratis", "Privado", "Sin cuenta", "Sin anuncios"],
+    },
+    stats: {
+      headline: "Descubre a dónde se va tu tiempo en YouTube",
+      sub: "Desglose por las categorías de YouTube, más tendencias por día, semana y mes – solo en tu dispositivo.",
+      pills: ["Gratis", "Privado", "Solo local", "Sin cuenta"],
+    },
+    footer: "Gratis · Privado · Sin cuenta",
+  },
+  fr: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Bloquez les Shorts, les Mix et les chaînes de votre choix",
+      sub: "Un vrai blocage, pas une simple suggestion – masquez les Shorts, les Mix et n’importe quelle chaîne partout sur YouTube.",
+      pills: ["Gratuit", "Privé", "Sans compte", "Sans pub"],
+    },
+    stats: {
+      headline: "Voyez où passe votre temps sur YouTube",
+      sub: "Répartition par catégories YouTube, plus l’évolution par jour, semaine et mois – enregistré localement, jamais envoyé.",
+      pills: ["Gratuit", "Privé", "100 % local", "Sans compte"],
+    },
+    footer: "Gratuit · Privé · Sans compte",
+  },
+  ru: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Блокируйте Shorts, миксы и любые каналы",
+      sub: "Настоящая блокировка, а не мягкая подсказка – скрывает Shorts, миксы и выбранные каналы во всём YouTube.",
+      pills: ["Бесплатно", "Приватно", "Без аккаунта", "Без рекламы"],
+    },
+    stats: {
+      headline: "Узнайте, куда уходит ваше время на YouTube",
+      sub: "Разбивка по категориям YouTube и динамика по дням, неделям и месяцам – хранится только на вашем устройстве.",
+      pills: ["Бесплатно", "Приватно", "Только локально", "Без аккаунта"],
+    },
+    footer: "Бесплатно · Приватно · Без аккаунта",
+  },
+  it: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Blocca Shorts, Mix e i canali che scegli tu",
+      sub: "Un vero blocco, non un semplice suggerimento – nascondi Shorts, Mix e qualsiasi canale ovunque su YouTube.",
+      pills: ["Gratis", "Privato", "Senza account", "Senza pubblicità"],
+    },
+    stats: {
+      headline: "Scopri dove va il tuo tempo su YouTube",
+      sub: "Suddivisione per categorie di YouTube, più andamento per giorno, settimana e mese – solo sul tuo dispositivo.",
+      pills: ["Gratis", "Privato", "Solo locale", "Senza account"],
+    },
+    footer: "Gratis · Privato · Senza account",
+  },
+  ko: {
+    font: `"Malgun Gothic", "Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Shorts, 믹스, 원하는 채널까지<br>모두 차단",
+      sub: "추천 줄이기가 아닌 진짜 차단. Shorts, 믹스, 지정한 채널을 YouTube 어디서나 숨깁니다.",
+      pills: ["무료", "개인정보 보호", "계정 불필요", "광고 없음"],
+    },
+    stats: {
+      headline: "YouTube 시간이 어디에 쓰이는지<br>한눈에",
+      sub: "YouTube 공식 카테고리별 분석과 일·주·월별 추이. 기록은 기기에만 저장되며 외부로 전송되지 않습니다.",
+      pills: ["무료", "개인정보 보호", "기기에만 저장", "계정 불필요"],
+    },
+    footer: "무료 · 개인정보 보호 · 계정 불필요",
+  },
+  zh_CN: {
+    font: `"Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif`,
+    blocking: {
+      headline: "屏蔽 Shorts、合辑<br>和你指定的频道",
+      sub: "真正的屏蔽，而不只是“少推荐”。在 YouTube 各处隐藏 Shorts、合辑和任何指定频道。",
+      pills: ["免费", "注重隐私", "无需账号", "无广告"],
+    },
+    stats: {
+      headline: "看清你的 YouTube<br>时间都去哪儿了",
+      sub: "按 YouTube 官方类别细分，并显示每日、每周、每月趋势。仅保存在本设备，绝不上传。",
+      pills: ["免费", "注重隐私", "仅存本地", "无需账号"],
+    },
+    footer: "免费 · 注重隐私 · 无需账号",
+  },
+  zh_TW: {
+    font: `"Microsoft JhengHei UI", "Microsoft JhengHei", "Segoe UI", sans-serif`,
+    blocking: {
+      headline: "封鎖 Shorts、合輯<br>和你指定的頻道",
+      sub: "真正的封鎖，而不只是「少推薦」。在 YouTube 各處隱藏 Shorts、合輯和任何指定頻道。",
+      pills: ["免費", "注重隱私", "無需帳號", "無廣告"],
+    },
+    stats: {
+      headline: "看清你的 YouTube<br>時間都花在哪裡",
+      sub: "依 YouTube 官方類別細分，並顯示每日、每週、每月趨勢。只存在這部裝置，絕不上傳。",
+      pills: ["免費", "注重隱私", "僅存本機", "無需帳號"],
+    },
+    footer: "免費 · 注重隱私 · 無需帳號",
+  },
+  tr: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Shorts, Mix'ler ve seçtiğin kanalları engelle",
+      sub: "Yumuşak bir öneri değil, gerçek engelleme – Shorts, Mix'ler ve seçtiğin her kanal YouTube'un her yerinde gizlenir.",
+      pills: ["Ücretsiz", "Gizli", "Hesap yok", "Reklam yok"],
+    },
+    stats: {
+      headline: "YouTube'da zamanının nereye gittiğini gör",
+      sub: "YouTube'un kendi kategorilerine göre döküm, ayrıca günlük, haftalık ve aylık eğilimler – yalnızca cihazında.",
+      pills: ["Ücretsiz", "Gizli", "Yalnızca yerel", "Hesap yok"],
+    },
+    footer: "Ücretsiz · Gizli · Hesap yok",
+  },
+  pl: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Blokuj Shorts, składanki i wybrane kanały",
+      sub: "Prawdziwa blokada, a nie delikatna sugestia – ukrywa Shorts, składanki i dowolne kanały w całym YouTube.",
+      pills: ["Za darmo", "Prywatnie", "Bez konta", "Bez reklam"],
+    },
+    stats: {
+      headline: "Zobacz, na co idzie Twój czas w YouTube",
+      sub: "Podział według kategorii YouTube oraz trendy dzienne, tygodniowe i miesięczne – tylko na Twoim urządzeniu.",
+      pills: ["Za darmo", "Prywatnie", "Tylko lokalnie", "Bez konta"],
+    },
+    footer: "Za darmo · Prywatnie · Bez konta",
+  },
+  nl: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Blokkeer Shorts, mixen en kanalen naar keuze",
+      sub: "Echt blokkeren, geen zachte hint – verbergt Shorts, mixen en elk gekozen kanaal overal op YouTube.",
+      pills: ["Gratis", "Privé", "Geen account", "Geen reclame"],
+    },
+    stats: {
+      headline: "Zie waar je tijd op YouTube naartoe gaat",
+      sub: "Uitsplitsing per YouTube-categorie, plus trends per dag, week en maand – alleen op je eigen apparaat.",
+      pills: ["Gratis", "Privé", "Alleen lokaal", "Geen account"],
+    },
+    footer: "Gratis · Privé · Geen account",
+  },
+  uk: {
+    font: `"Segoe UI", sans-serif`,
+    blocking: {
+      headline: "Блокуйте Shorts, мікси й будь-які канали",
+      sub: "Справжнє блокування, а не м'яка підказка – приховує Shorts, мікси й вибрані канали в усьому YouTube.",
+      pills: ["Безкоштовно", "Приватно", "Без акаунта", "Без реклами"],
+    },
+    stats: {
+      headline: "Дізнайтеся, куди йде ваш час на YouTube",
+      sub: "Розподіл за категоріями YouTube і динаміка за днями, тижнями та місяцями – зберігається лише на вашому пристрої.",
+      pills: ["Безкоштовно", "Приватно", "Лише локально", "Без акаунта"],
+    },
+    footer: "Безкоштовно · Приватно · Без акаунта",
+  },
 };
 
 function dayKey(d) {
@@ -184,17 +380,21 @@ function seedData() {
   };
 }
 
+// CJK copy runs a step smaller with no negative tracking, like Japanese did.
+const CJK = ["ja", "ko", "zh_CN", "zh_TW"];
+
 function template(lang, kind, popupFile) {
   const c = COPY[lang];
   const k = c[kind];
-  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><style>
+  const cjk = CJK.includes(lang);
+  return `<!doctype html><html lang="${lang.replace("_", "-")}"><head><meta charset="utf-8"><style>
   html,body{margin:0;width:1280px;height:800px;overflow:hidden}
   body{background:linear-gradient(135deg,#F4F4F2 0%,#ECECEA 55%,#E2E2E0 100%);font-family:${c.font};color:#1C1C1C;position:relative}
   .left{position:absolute;left:64px;top:0;bottom:0;width:500px;display:flex;flex-direction:column;justify-content:center}
   .eyebrow{font:700 14px/1 "Segoe UI",sans-serif;letter-spacing:.12em;display:flex;align-items:center;gap:8px;margin-bottom:22px}
   .dot{width:8px;height:8px;border-radius:2px;background:#1C1C1C}
-  h1{font-weight:800;font-size:${lang === "ja" ? 40 : 44}px;line-height:${lang === "th" ? 1.4 : 1.22};margin:0 0 14px;letter-spacing:${lang === "ja" ? "0" : "-.01em"}}
-  p{font-size:${lang === "ja" ? 17 : 18}px;line-height:1.6;color:#585858;margin:0 0 26px}
+  h1{font-weight:800;font-size:${cjk ? 40 : 44}px;line-height:${lang === "th" || lang === "hi" ? 1.4 : 1.22};margin:0 0 14px;letter-spacing:${cjk ? "0" : "-.01em"}}
+  p{font-size:${cjk ? 17 : 18}px;line-height:1.6;color:#585858;margin:0 0 26px}
   .pills{display:flex;flex-wrap:wrap;gap:12px}
   .pill{background:#fff;border-radius:999px;padding:10px 20px;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.07)}
   .foot{position:absolute;left:64px;bottom:64px;font:600 14px ${c.font};color:#585858;display:flex;align-items:center;gap:8px}

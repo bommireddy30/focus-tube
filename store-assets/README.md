@@ -114,7 +114,7 @@ values throughout (a fictional channel name/handle, a generic
 "How Neural Networks Actually Learn" video title) — nothing resembling
 a real creator or real personal viewing history.
 
-## Localized screenshots (`ja/`, `de/`, `id/`, `ms/`, `fil/`, `vi/`, `th/`, `ro/`)
+## Localized screenshots (one folder per non-English locale)
 
 `<lang>/popup-blocking.png` and `<lang>/popup-stats.png` — the same two branded popup screenshots, with the
 popup forced to that language (`popup.html?lang=xx`) and the composite's

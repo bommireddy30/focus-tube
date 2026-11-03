@@ -3,7 +3,7 @@
 Reference doc for the Developer Dashboard fields. Not part of the
 extension package itself.
 
-## ASO strategy (India, USA, Germany, Japan, Southeast Asia, Romania)
+## ASO strategy (India, USA, Europe, Japan, Korea, Latin America, Southeast Asia, Middle East)
 
 Chrome Web Store has no hidden keywords field. What feeds search is the
 **name** and **summary** (both come from `manifest.json` via
@@ -16,7 +16,7 @@ language, so each market is won by its own locale:
 | Market  | Chrome UI language most users have | Locale that serves them | Primary search phrases targeted |
 |---------|------------------------------------|-------------------------|---------------------------------|
 | USA     | English (US)                       | `en`                    | block / hide / remove YouTube Shorts, Shorts blocker, YouTube distraction blocker, focus |
-| India   | English (US/UK), some Hindi        | `en`, `hi`              | same English phrases (most Indian searches are English/Hinglish), plus Hindi for Hindi-UI users |
+| India   | English (US/UK), some Hindi        | `en`, `hi`              | same English phrases (most Indian searches are English/Hinglish), plus Hindi for Hindi-UI users (full Hindi popup + screenshots as of 3.8.13) |
 | Germany | German                             | `de`                    | YouTube Shorts ausblenden / entfernen / deaktivieren / blockieren, ablenkungsfrei |
 | Japan   | Japanese                           | `ja`                    | YouTube ショート 非表示 / 消す / ブロック, ショート動画, 集中 |
 | Indonesia | Indonesian                       | `id`                    | sembunyikan / blokir / hapus YouTube Shorts, pemblokir Shorts |
@@ -26,6 +26,20 @@ language, so each market is won by its own locale:
 | Thailand | Thai                              | `th`                    | ซ่อน / บล็อก / ปิด YouTube Shorts |
 | Singapore | English                          | `en`                    | same English phrases |
 | Romania | Romanian                           | `ro`                    | ascunde / blochează / elimină YouTube Shorts |
+| Brazil  | Portuguese (Brazil)                | `pt_BR`                 | ocultar / bloquear / remover / tirar YouTube Shorts, bloqueador de Shorts |
+| Portugal | Portuguese (Portugal)             | `pt_PT`                 | ocultar / bloquear / remover YouTube Shorts |
+| Spain, Mexico, Latin America | Spanish       | `es` (Chrome falls back `es-419`/`es-MX` → `es`) | ocultar / bloquear / quitar / eliminar Shorts de YouTube |
+| France, Belgium, Canada | French             | `fr`                    | masquer / bloquer / supprimer les Shorts YouTube |
+| Russia, CIS | Russian                        | `ru`                    | скрыть / убрать / заблокировать Shorts на YouTube, блокировщик Shorts |
+| Ukraine | Ukrainian                          | `uk`                    | приховати / заблокувати / прибрати Shorts на YouTube |
+| Italy   | Italian                            | `it`                    | nascondere / bloccare / rimuovere gli Shorts di YouTube |
+| South Korea | Korean                         | `ko`                    | 쇼츠 숨기기 / 차단 / 끄기, YouTube Shorts 차단 |
+| Taiwan, Hong Kong | Chinese (Traditional)    | `zh_TW`                 | 封鎖 / 隱藏 / 關閉 YouTube Shorts, 短片 |
+| Chinese diaspora | Chinese (Simplified)      | `zh_CN`                 | 屏蔽 / 隐藏 / 关闭 YouTube Shorts, 短视频 |
+| Turkey  | Turkish                            | `tr`                    | YouTube Shorts gizle / engelle / kaldır / kapat |
+| Poland  | Polish                             | `pl`                    | ukryj / zablokuj / usuń / wyłącz Shorts YouTube |
+| Netherlands | Dutch, often English           | `nl`, `en`              | YouTube Shorts verbergen / blokkeren / uitzetten |
+| Saudi Arabia, Egypt, UAE, Gulf | Arabic, much English | `ar` (listing only), `en` | إخفاء / حظر / إزالة YouTube Shorts، مانع Shorts |
 
 Rules of thumb applied below:
 - **Exact search phrase first, in the name.** The name ranks highest. The
@@ -46,8 +60,13 @@ Rules of thumb applied below:
 
 In the Developer Dashboard → Store listing, use the language dropdown to
 add **English**, **German**, **Japanese**, **Hindi**, **Indonesian**,
-**Malay**, **Filipino**, **Vietnamese**, **Thai**, and **Romanian** and paste the
-matching description below into each. Name/summary fill in automatically
+**Malay**, **Filipino**, **Vietnamese**, **Thai**, **Romanian**,
+**Portuguese (Brazil)**, **Portuguese (Portugal)**, **Spanish**,
+**French**, **Russian**, **Italian**, **Korean**, **Chinese (Simplified)**,
+**Chinese (Traditional)**, **Turkish**, **Polish**, **Dutch**,
+**Ukrainian**, and **Arabic** and paste the matching description below into each.
+(Spanish: add plain **Spanish**; there's no need for a separate "Spanish
+(Latin America)" listing, since Latin-American users fall back to it.) Name/summary fill in automatically
 from the uploaded package's locales. Optionally upload localized
 screenshots and promo tiles per language (see "Localized assets" below) —
 a screenshot in the viewer's language noticeably lifts install
@@ -99,7 +118,7 @@ FREE AND OPEN SOURCE
 Every feature is free — no tiers, no daily cap, no license key.
 https://github.com/bommireddy30/focus-tube
 
-Available in English, Deutsch, 日本語, हिन्दी, Bahasa Indonesia, Bahasa Melayu, Filipino, Tiếng Việt, ไทย, and Română.
+Available in English, Español, Português, Français, Deutsch, Italiano, Nederlands, Polski, Română, Türkçe, Русский, Українська, 日本語, 한국어, 简体中文, 繁體中文, हिन्दी, Bahasa Indonesia, Bahasa Melayu, Filipino, Tiếng Việt, and ไทย.
 ```
 
 ---
@@ -194,10 +213,13 @@ https://github.com/bommireddy30/focus-tube
 
 ## Hindi — `hi` (India, Hindi Chrome UI)
 
-Only the name/summary/action title are localized in the package
-(`_locales/hi`); the popup itself falls back to English per key, which is
-fine for this audience. Keep "YouTube Shorts" in Latin script — Indian
-users overwhelmingly search the brand terms that way, even in Hindi.
+The popup is fully in Hindi as of 3.8.13 (it used to fall back to
+English), and `store-assets/hi/` has Hindi screenshots, so Hindi-UI
+users now see their language from listing to popup. The copy is
+deliberately Hinglish where Indian YouTube itself is: "YouTube Shorts",
+"Mixes", "Calm Mode" and several suggested keywords (*roast*, *exposed*,
+*must watch*) stay in Latin script, because that's how Indian users
+search and how those titles are written. Keep it that way.
 
 **Name** (47 chars): `Focus Tube – YouTube Shorts हटाएं और ब्लॉक करें`
 
@@ -530,10 +552,699 @@ https://github.com/bommireddy30/focus-tube
 
 ---
 
+## Portuguese (Brazil) — `pt_BR` (Brazil)
+
+Brazil is one of YouTube's biggest markets and Shorts usage there is
+huge. Brazilians search *ocultar*, *bloquear*, *remover* and *tirar os
+Shorts*; the name carries the first two. "Mix" is what YouTube's pt-BR
+UI calls Mixes. `pt_BR` is its own CWS listing, separate from `pt_PT`,
+and Chrome won't serve a `pt_PT` file to a `pt-BR` browser, so both exist.
+
+**Name** (46 chars): `Focus Tube – Ocultar e Bloquear YouTube Shorts`
+
+**Summary** (127 chars):
+```
+Bloqueador de Shorts: remova YouTube Shorts, Mixes e reprodução automática. Bloqueie canais e palavras, veja seu tempo. Grátis.
+```
+
+**Description:**
+```
+Oculte os YouTube Shorts em todo lugar e use o YouTube sem distrações. O Focus Tube é um bloqueador de Shorts gratuito que também remove Mixes, a reprodução automática e outras iscas de atenção — você assiste ao que veio ver e pronto.
+
+Não oficial e independente — sem vínculo, apoio ou patrocínio do YouTube ou do Google.
+
+O QUE ELE BLOQUEIA
+• O player de Shorts — um link /shorts/ abre como vídeo normal ou leva direto ao Início, você escolhe.
+• Prateleiras de Shorts — o carrossel no Início e em Inscrições.
+• Shorts na busca — a prateleira e o filtro nos resultados de busca.
+• Shorts avulsos — cards de Shorts em feeds, Histórico, páginas de canal e próximos vídeos.
+• Links de Shorts — o item da barra lateral, o filtro e a aba do canal.
+• Mixes — as playlists "Mixes para você" geradas automaticamente pelo YouTube.
+• Reprodução automática — desativada, e o botão some.
+• Prateleiras "Explorar mais assuntos" e "Continuar assistindo" — opcionais.
+• Modo Calmo — suaviza os destaques vermelhos e o selo de notificações do YouTube, desfoca miniaturas caça-clique (passe o mouse para ver) e impede a prévia automática ao passar o mouse.
+• Palavras-chave — oculte vídeos por palavras no título, canal ou descrição, com opção de palavra inteira e exclusão automática após 7 dias.
+• Canais bloqueados — oculte todos os vídeos de um canal, em todo lugar, inclusive na Busca (diferente do "Não recomendar canal" do YouTube).
+
+ESTATÍSTICAS
+Veja para onde vai seu tempo no YouTube: minutos por categoria (Educação, Entretenimento, Música…), tempo por dia, semana e mês comparado aos períodos anteriores, e quanto do último vídeo você realmente assistiu. Tudo fica só no seu dispositivo.
+
+POR QUÊ
+Shorts, reprodução automática e selos vermelhos são mecanismos para prender você. O Focus Tube desliga tudo isso para o YouTube voltar a ser uma ferramenta que você usa de propósito — ótimo para estudar, trabalhar e cuidar do bem-estar digital.
+
+PRIVACIDADE
+Sem conta, sem analytics, sem servidores. Nada é enviado a terceiros. As estatísticas ficam no armazenamento local do navegador; as configurações sincronizam apenas pela sincronização de extensões do próprio Chrome. Política de privacidade: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRÁTIS E DE CÓDIGO ABERTO
+Todos os recursos são gratuitos — sem planos, sem limite diário, sem chave de licença.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Portuguese (Portugal) — `pt_PT` (Portugal, Angola, Mozambique)
+
+European Portuguese differs enough to matter in a listing: *ecrã*,
+*definições*, *desporto*, *Misturas* (YouTube's pt-PT name for Mixes),
+*em direto*. Same name as pt-BR, since *ocultar* and *bloquear* are
+shared.
+
+**Name** (46 chars): `Focus Tube – Ocultar e Bloquear YouTube Shorts`
+
+**Summary** (124 chars):
+```
+Bloqueador de Shorts: remova YouTube Shorts, Misturas e reprodução automática. Bloqueie canais e palavras, veja o seu tempo.
+```
+
+**Description:**
+```
+Oculte os YouTube Shorts em todo o lado e use o YouTube sem distrações. O Focus Tube é um bloqueador de Shorts gratuito que também remove Misturas, a reprodução automática e outros iscos de atenção — vê o que procurava e sai.
+
+Não oficial e independente — sem ligação, apoio ou patrocínio do YouTube ou da Google.
+
+O QUE BLOQUEIA
+• O leitor de Shorts — um link /shorts/ abre como vídeo normal ou leva diretamente ao Início, à sua escolha.
+• Prateleiras de Shorts — o carrossel no Início e nas Subscrições.
+• Shorts na pesquisa — a prateleira e o filtro nos resultados de pesquisa.
+• Shorts soltos — cartões de Shorts em feeds, Histórico, páginas de canal e a seguir.
+• Links de Shorts — a entrada da barra lateral, o filtro e o separador do canal.
+• Misturas — as playlists "Misturas para si" geradas automaticamente pelo YouTube.
+• Reprodução automática — desativada, e o interruptor desaparece.
+• Prateleiras "Explorar mais temas" e "Continuar a ver" — opcionais.
+• Modo Calmo — atenua os destaques vermelhos e o selo de notificações do YouTube, desfoca miniaturas sensacionalistas (passe o rato para ver) e impede a pré-visualização automática ao passar o rato.
+• Palavras-chave — oculte vídeos por palavras no título, canal ou descrição, com opção de palavra inteira e eliminação automática após 7 dias.
+• Canais bloqueados — oculte todos os vídeos de um canal, em todo o lado, incluindo a Pesquisa (ao contrário do "Não recomendar canal" do YouTube).
+
+ESTATÍSTICAS
+Veja para onde vai o seu tempo no YouTube: minutos por categoria (Educação, Entretenimento, Música…), tempo por dia, semana e mês comparado com os períodos anteriores, e quanto do último vídeo viu realmente. Tudo fica apenas no seu dispositivo.
+
+PORQUÊ
+Shorts, reprodução automática e selos vermelhos são mecanismos para o manter a ver. O Focus Tube desliga-os para que o YouTube volte a ser uma ferramenta que usa de propósito — ideal para estudar, trabalhar e para o bem-estar digital.
+
+PRIVACIDADE
+Sem conta, sem analytics, sem servidores. Nada é enviado a terceiros. As estatísticas ficam no armazenamento local do navegador; as definições sincronizam apenas através da sincronização de extensões do próprio Chrome. Política de privacidade: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRATUITO E DE CÓDIGO ABERTO
+Todas as funcionalidades são gratuitas — sem planos, sem limite diário, sem chave de licença.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Spanish — `es` (Spain, Mexico, all of Latin America)
+
+One neutral-Spanish locale covers both sides of the Atlantic: Chrome
+falls back from `es-419` (and `es-MX`, `es-AR`…) to `es`, so a separate
+`es_419` isn't needed unless the copy ever has to diverge. It uses *tú*
+and *video* (no accent), which reads naturally in Latin America (the
+bigger audience) and is fine in Spain. Searches: *ocultar*, *bloquear*,
+*quitar*, *eliminar Shorts de YouTube*.
+
+**Name** (46 chars): `Focus Tube – Ocultar y Bloquear YouTube Shorts`
+
+**Summary** (128 chars):
+```
+Bloqueador de Shorts: quita YouTube Shorts, Mixes y reproducción automática. Bloquea canales y palabras, mira tu tiempo. Gratis.
+```
+
+**Description:**
+```
+Oculta los YouTube Shorts en todas partes y disfruta de YouTube sin distracciones. Focus Tube es un bloqueador de Shorts gratuito que también quita los Mixes, la reproducción automática y otros ganchos de atención: ves lo que buscabas y listo.
+
+No oficial e independiente: sin relación, respaldo ni patrocinio de YouTube ni de Google.
+
+QUÉ BLOQUEA
+• El reproductor de Shorts: un enlace /shorts/ se abre como video normal o te lleva directo al inicio, tú eliges.
+• Estantes de Shorts: el carrusel de Inicio y Suscripciones.
+• Shorts en la búsqueda: el estante y el filtro en los resultados.
+• Shorts sueltos: tarjetas de Shorts en feeds, Historial, páginas de canal y a continuación.
+• Enlaces a Shorts: la entrada lateral, el filtro y la pestaña del canal.
+• Mixes: las listas "Mixes para ti" que YouTube genera automáticamente.
+• Reproducción automática: se desactiva y el interruptor desaparece.
+• Estantes "Explorar más temas" y "Seguir viendo": opcionales.
+• Modo Calma: atenúa los acentos rojos y el contador de notificaciones de YouTube, desenfoca las miniaturas clickbait (pasa el cursor para verlas) y detiene la vista previa automática al pasar el cursor.
+• Palabras clave: oculta videos por palabras en el título, el canal o la descripción, con opción de palabra completa y borrado automático a los 7 días.
+• Canales bloqueados: oculta todos los videos de un canal, en todas partes, incluida la Búsqueda (a diferencia del "No recomendar el canal" de YouTube).
+
+ESTADÍSTICAS
+Mira a dónde se va tu tiempo en YouTube: minutos por categoría (Educación, Entretenimiento, Música…), tiempo por día, semana y mes comparado con los periodos anteriores, y cuánto viste realmente de tu último video. Todo se guarda solo en tu dispositivo.
+
+POR QUÉ
+Los Shorts, la reproducción automática y los avisos rojos son mecanismos para retenerte. Focus Tube los apaga para que YouTube vuelva a ser una herramienta que usas a propósito: ideal para estudiar, trabajar y cuidar tu bienestar digital.
+
+PRIVACIDAD
+Sin cuenta, sin analíticas, sin servidores. Nunca se envía nada a terceros. Las estadísticas se quedan en el almacenamiento local del navegador; los ajustes solo se sincronizan mediante la sincronización de extensiones del propio Chrome. Política de privacidad: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRATIS Y DE CÓDIGO ABIERTO
+Todas las funciones son gratis: sin planes, sin límite diario, sin clave de licencia.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## French — `fr` (France, Belgium, Switzerland, Canada, Francophone Africa)
+
+French users search *masquer*, *bloquer*, *supprimer les Shorts YouTube*.
+The name uses *masquer* (YouTube's own French UI verb for hiding) ahead
+of *bloquer*, and uses *vous* throughout.
+"Mix" is invariable in YouTube’s French UI.
+
+**Name** (50 chars): `Focus Tube – Masquer et Bloquer les YouTube Shorts`
+
+**Summary** (126 chars):
+```
+Bloqueur de Shorts : supprime les YouTube Shorts, Mix et lecture auto. Bloque chaînes et mots-clés, suit votre temps. Gratuit.
+```
+
+**Description:**
+```
+Masquez les YouTube Shorts partout et profitez d’un YouTube sans distractions. Focus Tube est un bloqueur de Shorts gratuit qui supprime aussi les Mix, la lecture automatique et les autres pièges à attention : vous regardez ce que vous étiez venu chercher, puis vous partez.
+
+Non officiel et indépendant — sans lien, soutien ni parrainage de YouTube ou de Google.
+
+CE QUI EST BLOQUÉ
+• Le lecteur Shorts — un lien /shorts/ s’ouvre comme une vidéo normale ou renvoie directement à l’accueil, au choix.
+• Étagères de Shorts — le carrousel de l’Accueil et des Abonnements.
+• Shorts dans la recherche — l’étagère et le filtre dans les résultats.
+• Shorts isolés — les cartes Shorts dans les flux, l’historique, les pages de chaîne et « À suivre ».
+• Liens vers les Shorts — l’entrée du menu latéral, le filtre et l’onglet de chaîne.
+• Mix — les playlists « Mix pour vous » générées automatiquement par YouTube.
+• Lecture automatique — désactivée, et le bouton disparaît.
+• Étagères « Explorer d’autres sujets » et « Reprendre la lecture » — en option.
+• Mode Calme — atténue les accents rouges et le badge de notifications de YouTube, floute les miniatures racoleuses (survolez pour voir) et coupe l’aperçu automatique au survol.
+• Mots-clés — masquez les vidéos selon les mots du titre, de la chaîne ou de la description, avec option mot entier et suppression automatique après 7 jours.
+• Chaînes bloquées — masquez toutes les vidéos d’une chaîne, partout, y compris dans la Recherche (contrairement à « Ne pas recommander cette chaîne » de YouTube).
+
+STATISTIQUES
+Voyez où passe votre temps sur YouTube : minutes par catégorie (Éducation, Divertissement, Musique…), temps par jour, semaine et mois comparé aux périodes précédentes, et quelle part de votre dernière vidéo vous avez vraiment regardée. Tout reste sur votre appareil.
+
+POURQUOI
+Les Shorts, la lecture automatique et les badges rouges sont des mécanismes conçus pour vous retenir. Focus Tube les désactive pour que YouTube redevienne un outil que vous utilisez volontairement — idéal pour étudier, travailler et préserver votre bien-être numérique.
+
+CONFIDENTIALITÉ
+Aucun compte, aucune statistique d’usage, aucun serveur. Rien n’est jamais envoyé à un tiers. Les statistiques restent dans le stockage local du navigateur ; les paramètres se synchronisent uniquement via la synchronisation des extensions de Chrome. Politique de confidentialité : https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRATUIT ET OPEN SOURCE
+Toutes les fonctionnalités sont gratuites — pas d’abonnement, pas de limite quotidienne, pas de clé de licence.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Russian — `ru` (Russia, Kazakhstan, Belarus, Russian-speaking users elsewhere)
+
+Russian searches: *скрыть / убрать / заблокировать Shorts на YouTube*,
+*блокировщик Shorts*. "Shorts" stays in Latin script — that's what
+YouTube's Russian UI shows. YouTube calls Mixes *миксы*.
+
+**Name** (50 chars): `Focus Tube – Скрыть и заблокировать YouTube Shorts`
+
+**Summary** (126 chars):
+```
+Блокировщик Shorts: убирает YouTube Shorts, миксы и автовоспроизведение. Блок каналов и слов, статистика просмотра. Бесплатно.
+```
+
+**Description:**
+```
+Скройте YouTube Shorts везде и пользуйтесь YouTube без отвлечений. Focus Tube — бесплатный блокировщик Shorts, который также убирает миксы, автовоспроизведение и другие приманки для внимания: вы смотрите то, за чем пришли, и уходите.
+
+Неофициальное и независимое расширение — не связано с YouTube или Google, не одобрено и не спонсируется ими.
+
+ЧТО БЛОКИРУЕТСЯ
+• Плеер Shorts — ссылка /shorts/ открывается как обычное видео или сразу ведёт на главную, на ваш выбор.
+• Полки Shorts — карусель на Главной и в Подписках.
+• Shorts в поиске — полка и фильтр в результатах поиска.
+• Отдельные Shorts — карточки Shorts в лентах, Истории, на страницах каналов и в «Далее».
+• Ссылки на Shorts — пункт бокового меню, фильтр и вкладка канала.
+• Миксы — автоматические плейлисты YouTube «Миксы для вас».
+• Автовоспроизведение — выключается, а переключатель исчезает.
+• Полки «Другие темы» и «Продолжить просмотр» — по желанию.
+• Спокойный режим — приглушает красные акценты и значок уведомлений YouTube, размывает кликбейтные обложки (наведите, чтобы увидеть) и отключает автопревью при наведении.
+• Ключевые слова — скрывайте видео по словам в названии, канале или описании, с режимом целых слов и автоудалением через 7 дней.
+• Заблокированные каналы — скрывайте все видео выбранного канала везде, включая Поиск (в отличие от «Не рекомендовать канал» в YouTube).
+
+СТАТИСТИКА
+Узнайте, куда уходит ваше время на YouTube: минуты по категориям (Образование, Развлечения, Музыка…), время по дням, неделям и месяцам в сравнении с прошлыми периодами и какую часть последнего видео вы действительно посмотрели. Всё хранится только на вашем устройстве.
+
+ЗАЧЕМ
+Shorts, автовоспроизведение и красные значки — механизмы удержания внимания. Focus Tube отключает их, чтобы YouTube снова стал инструментом, которым вы пользуетесь осознанно, — для учёбы, работы и цифрового благополучия.
+
+КОНФИДЕНЦИАЛЬНОСТЬ
+Без аккаунта, без аналитики, без серверов. Никакие данные не передаются третьим лицам. Статистика хранится в локальном хранилище браузера; настройки синхронизируются только через встроенную синхронизацию расширений Chrome. Политика конфиденциальности: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+БЕСПЛАТНО И С ОТКРЫТЫМ КОДОМ
+Все функции бесплатны — без тарифов, без дневных лимитов, без лицензионных ключей.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Italian — `it` (Italy, Switzerland)
+
+Italian searches: *nascondere / bloccare / rimuovere gli Shorts di
+YouTube*. The name uses the imperative (*Nascondi e Blocca*), as Italian
+store titles usually do.
+
+**Name** (49 chars): `Focus Tube – Nascondi e Blocca gli YouTube Shorts`
+
+**Summary** (120 chars):
+```
+Blocco Shorts: rimuovi YouTube Shorts, Mix e riproduzione automatica. Blocca canali e parole, vedi il tuo tempo. Gratis.
+```
+
+**Description:**
+```
+Nascondi gli YouTube Shorts ovunque e usa YouTube senza distrazioni. Focus Tube è un blocco Shorts gratuito che rimuove anche i Mix, la riproduzione automatica e le altre esche per l’attenzione: guardi quello che cercavi e chiudi.
+
+Non ufficiale e indipendente — non affiliato, approvato o sponsorizzato da YouTube o Google.
+
+COSA BLOCCA
+• Il player degli Shorts — un link /shorts/ si apre come video normale o porta direttamente alla Home, a tua scelta.
+• Scaffali di Shorts — il carosello in Home e Iscrizioni.
+• Shorts nella ricerca — lo scaffale e il filtro nei risultati.
+• Shorts sparsi — le schede Shorts nei feed, nella Cronologia, nelle pagine dei canali e nei video successivi.
+• Link agli Shorts — la voce laterale, il filtro e la scheda del canale.
+• Mix — le playlist "Mix per te" generate automaticamente da YouTube.
+• Riproduzione automatica — disattivata, e l’interruttore sparisce.
+• Scaffali "Esplora altri argomenti" e "Continua a guardare" — facoltativi.
+• Modalità Calma — attenua gli accenti rossi e il badge delle notifiche di YouTube, sfoca le miniature acchiappaclic (passa il mouse per vederle) e blocca l’anteprima automatica al passaggio del mouse.
+• Parole chiave — nascondi i video in base alle parole nel titolo, nel canale o nella descrizione, con opzione parola intera ed eliminazione automatica dopo 7 giorni.
+• Canali bloccati — nascondi ogni video di un canale, ovunque, anche nella Ricerca (a differenza del "Non consigliare il canale" di YouTube).
+
+STATISTICHE
+Scopri dove va il tuo tempo su YouTube: minuti per categoria (Istruzione, Intrattenimento, Musica…), tempo per giorno, settimana e mese a confronto con i periodi precedenti, e quanto dell’ultimo video hai guardato davvero. Tutto resta sul tuo dispositivo.
+
+PERCHÉ
+Shorts, riproduzione automatica e badge rossi sono meccanismi pensati per trattenerti. Focus Tube li spegne perché YouTube torni a essere uno strumento che usi di proposito — ideale per studiare, lavorare e per il benessere digitale.
+
+PRIVACY
+Nessun account, nessuna analisi, nessun server. Nulla viene mai inviato a terzi. Le statistiche restano nella memoria locale del browser; le impostazioni si sincronizzano solo tramite la sincronizzazione delle estensioni di Chrome. Informativa sulla privacy: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRATUITO E OPEN SOURCE
+Tutte le funzioni sono gratuite — niente piani, niente limiti giornalieri, niente chiavi di licenza.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Korean — `ko` (South Korea)
+
+Korean users search both 쇼츠 (the Hangul transliteration) and "Shorts".
+The summary uses 쇼츠 차단기 and the name keeps the Latin "YouTube Shorts"
+so both forms are covered. 숨기기 (hide) and 차단 (block) are the two verbs.
+
+**Name** (36 chars): `Focus Tube – YouTube Shorts 숨기기 및 차단`
+
+**Summary** (73 chars):
+```
+쇼츠 차단기: YouTube Shorts, 믹스, 자동재생을 없애고 채널과 키워드를 차단하며 시청 시간을 보여줍니다. 무료·비공개.
+```
+
+**Description:**
+```
+YouTube Shorts를 어디서나 숨기고 방해 없는 YouTube를 즐기세요. Focus Tube는 믹스, 자동재생 등 시선을 붙잡는 요소까지 없애 주는 무료 쇼츠 차단기입니다. 보려던 것만 보고 나가세요.
+
+비공식·독립 프로젝트이며 YouTube 또는 Google과 제휴, 보증, 후원 관계가 없습니다.
+
+차단하는 항목
+• Shorts 플레이어 — /shorts/ 링크를 일반 동영상으로 열거나 바로 홈으로 이동(선택 가능).
+• Shorts 선반 — 홈과 구독 탭의 캐러셀.
+• 검색 속 Shorts — 검색 결과의 선반과 필터 칩.
+• 개별 Shorts — 피드, 기록, 채널 페이지, 다음 동영상의 Shorts 카드.
+• Shorts 링크 — 사이드바 항목, 필터 칩, 채널 탭.
+• 믹스 — YouTube가 자동 생성하는 '나를 위한 믹스' 재생목록.
+• 자동재생 — 끄고 토글을 제거.
+• '다른 주제 탐색', '이어서 시청' 선반 — 선택 사항.
+• 차분 모드 — YouTube의 빨간 강조색과 알림 배지를 차분하게 바꾸고, 낚시성 썸네일을 흐리게 하며(마우스를 올리면 보임), 마우스 오버 미리보기 자동재생을 막습니다.
+• 키워드 — 제목, 채널, 설명의 단어로 동영상을 숨김. 단어 전체 일치와 7일 후 자동 삭제 옵션 제공.
+• 차단한 채널 — 선택한 채널의 모든 동영상을 검색을 포함해 어디서나 숨김(YouTube의 '채널 추천 안함'과 다름).
+
+시청 통계
+YouTube 시간이 어디에 쓰이는지 확인하세요. 카테고리별 시청 시간(교육, 엔터테인먼트, 음악…), 이전 기간과 비교한 일·주·월별 시청 시간, 마지막 동영상을 실제로 얼마나 봤는지까지. 모든 데이터는 기기에만 저장됩니다.
+
+왜 필요한가
+Shorts, 자동재생, 빨간 배지는 계속 보게 만드는 장치입니다. Focus Tube는 이를 꺼서 YouTube를 의도적으로 사용하는 도구로 되돌려 줍니다 — 공부, 업무, 디지털 웰빙에 제격입니다.
+
+개인정보 보호
+계정, 분석 도구, 서버가 없습니다. 어떤 데이터도 제3자에게 전송되지 않습니다. 시청 통계는 브라우저 로컬 저장소에만 있고, 설정은 Chrome 자체 확장 프로그램 동기화로만 동기화됩니다. 개인정보처리방침: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+무료 오픈소스
+모든 기능이 무료입니다 — 유료 등급, 일일 제한, 라이선스 키 없음.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Chinese (Simplified) — `zh_CN` (Chinese-UI users in mainland China, Singapore, Malaysia, and worldwide)
+
+YouTube is blocked in mainland China, so this audience is mostly people
+using it via VPN plus the diaspora; still worthwhile because the
+Simplified-Chinese Chrome UI is large. Searches: 屏蔽 / 隐藏 / 关闭 YouTube
+Shorts, 短视频. The name adds 短视频 so the Chinese word for "short
+video" is indexed. YouTube's zh-CN UI calls Mixes 合辑.
+
+**Name** (37 chars): `Focus Tube – 隐藏和屏蔽 YouTube Shorts 短视频`
+
+**Summary** (61 chars):
+```
+Shorts 屏蔽器：移除 YouTube Shorts、合辑和自动播放。屏蔽频道和关键词，查看观看时长。私密，完全免费。
+```
+
+**Description:**
+```
+在任何地方隐藏 YouTube Shorts，享受无干扰的 YouTube。Focus Tube 是一款免费的 Shorts 屏蔽器，同时移除合辑、自动播放和其他吸引注意力的设计——看完想看的内容就离开。
+
+非官方独立项目——与 YouTube 或 Google 无任何关联，也未获其认可或赞助。
+
+屏蔽内容
+• Shorts 播放器——打开 /shorts/ 链接时，可选择以普通视频打开或直接返回首页。
+• Shorts 内容架——首页和订阅内容中的轮播。
+• 搜索中的 Shorts——搜索结果中的内容架和筛选标签。
+• 零散的 Shorts——信息流、历史记录、频道页面和接下来播放中的 Shorts 卡片。
+• Shorts 链接——侧边栏入口、筛选标签和频道标签页。
+• 合辑——YouTube 自动生成的“为你推荐的合辑”播放列表。
+• 自动播放——关闭并移除开关。
+• “探索更多主题”和“继续观看”内容架——可选。
+• 平静模式——淡化 YouTube 的红色强调色和通知角标，模糊标题党缩略图（悬停可查看），并停止悬停时的自动预览。
+• 关键词——按标题、频道或说明中的词语隐藏视频，可选完整单词匹配和 7 天后自动删除。
+• 屏蔽频道——在所有位置（包括搜索）隐藏所选频道的全部视频（不同于 YouTube 的“不推荐此频道”）。
+
+观看统计
+看看你的 YouTube 时间花在了哪里：各类别的观看分钟数（教育、娱乐、音乐…）、按日/周/月统计并与之前对比的观看时长，以及你上一个视频实际看了多少。所有数据只保存在你的设备上。
+
+为什么
+Shorts、自动播放和红色角标都是为了留住你而设计的机制。Focus Tube 把它们关掉，让 YouTube 重新成为你有意使用的工具——适合学习、工作和数字健康。
+
+隐私
+无需账号，无数据分析，无服务器。绝不向第三方发送任何数据。观看统计只存储在浏览器本地；设置仅通过 Chrome 自带的扩展同步功能同步。隐私政策：https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+免费开源
+所有功能免费——没有付费等级，没有每日限制，没有许可证密钥。
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Chinese (Traditional) — `zh_TW` (Taiwan, Hong Kong)
+
+Taiwan is a strong YouTube market with high Shorts usage. Taiwanese
+wording differs from mainland Chinese: 封鎖 (not 屏蔽), 影片 (not 视频),
+短片 (not 短视频), 頻道, 設定. YouTube's zh-TW UI calls Mixes 合輯.
+
+**Name** (36 chars): `Focus Tube – 隱藏和封鎖 YouTube Shorts 短片`
+
+**Summary** (63 chars):
+```
+Shorts 封鎖器：移除 YouTube Shorts、合輯和自動播放。封鎖頻道和關鍵字，查看觀看時間。注重隱私，完全免費。
+```
+
+**Description:**
+```
+在任何地方隱藏 YouTube Shorts，享受不受干擾的 YouTube。Focus Tube 是一款免費的 Shorts 封鎖器，同時移除合輯、自動播放和其他吸引注意力的設計——看完想看的內容就離開。
+
+非官方獨立專案——與 YouTube 或 Google 無任何關聯，也未獲其認可或贊助。
+
+封鎖項目
+• Shorts 播放器——開啟 /shorts/ 連結時，可選擇以一般影片開啟或直接回到首頁。
+• Shorts 內容架——首頁和訂閱內容中的輪播。
+• 搜尋中的 Shorts——搜尋結果中的內容架和篩選標籤。
+• 零散的 Shorts——動態、觀看記錄、頻道頁面和接下來播放中的 Shorts 卡片。
+• Shorts 連結——側邊欄項目、篩選標籤和頻道分頁。
+• 合輯——YouTube 自動產生的「為你推薦的合輯」播放清單。
+• 自動播放——關閉並移除開關。
+• 「探索更多主題」和「繼續觀看」內容架——可選。
+• 平靜模式——淡化 YouTube 的紅色強調色和通知標記，模糊標題黨縮圖（滑鼠移上即可查看），並停止滑鼠懸停時的自動預覽。
+• 關鍵字——依標題、頻道或說明中的字詞隱藏影片，可選完整單字比對和 7 天後自動刪除。
+• 已封鎖的頻道——在所有位置（包括搜尋）隱藏所選頻道的全部影片（不同於 YouTube 的「不要推薦這個頻道」）。
+
+觀看統計
+看看你的 YouTube 時間花在哪裡：各類別的觀看分鐘數（教育、娛樂、音樂…）、依日/週/月統計並與之前比較的觀看時間，以及你上一部影片實際看了多少。所有資料只儲存在你的裝置上。
+
+為什麼
+Shorts、自動播放和紅色標記都是為了留住你而設計的機制。Focus Tube 把它們關掉，讓 YouTube 重新成為你有意使用的工具——適合學習、工作和數位健康。
+
+隱私
+不需帳號，沒有數據分析，沒有伺服器。絕不向第三方傳送任何資料。觀看統計只儲存在瀏覽器本機；設定僅透過 Chrome 內建的擴充功能同步功能同步。隱私權政策：https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+免費開源
+所有功能免費——沒有付費等級，沒有每日限制，沒有授權金鑰。
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Turkish — `tr` (Turkey)
+
+Turkey has one of the highest YouTube usage rates in Europe. Searches:
+*YouTube Shorts gizle / engelle / kaldır / kapat*. The name carries
+*gizle* and *engelle*; *kaldır* is in the summary.
+
+**Name** (44 chars): `Focus Tube – YouTube Shorts Gizle ve Engelle`
+
+**Summary** (131 chars):
+```
+Shorts engelleyici: YouTube Shorts, Mix ve otomatik oynatmayı kaldırır. Kanal ve kelime engeller, izleme süreni gösterir. Ücretsiz.
+```
+
+**Description:**
+```
+YouTube Shorts'u her yerde gizle, YouTube'u dikkat dağıtıcılar olmadan kullan. Focus Tube; Mix'leri, otomatik oynatmayı ve diğer dikkat tuzaklarını da kaldıran ücretsiz bir Shorts engelleyicidir — ne için geldiysen onu izle ve çık.
+
+Resmi değildir ve bağımsızdır — YouTube veya Google ile bağlantılı değildir, onlar tarafından onaylanmamış veya desteklenmemiştir.
+
+NELERİ ENGELLER
+• Shorts oynatıcısı — /shorts/ bağlantısı normal video olarak açılır ya da doğrudan ana sayfaya gider, seçim senin.
+• Shorts rafları — Ana Sayfa ve Abonelikler'deki karusel.
+• Aramada Shorts — arama sonuçlarındaki raf ve filtre çipi.
+• Tekil Shorts — akışlarda, Geçmiş'te, kanal sayfalarında ve sıradakilerde görünen Shorts kartları.
+• Shorts bağlantıları — kenar çubuğu girişi, filtre çipi ve kanal sekmesi.
+• Mix'ler — YouTube'un otomatik oluşturduğu "Sana özel Mix'ler" oynatma listeleri.
+• Otomatik oynatma — kapatılır ve düğmesi kaldırılır.
+• "Daha fazla konu keşfet" ve "İzlemeye devam et" rafları — isteğe bağlı.
+• Sakin Mod — YouTube'un kırmızı vurgularını ve bildirim rozetini yumuşatır, tık tuzağı küçük resimleri bulanıklaştırır (görmek için üzerine gel) ve üzerine gelince başlayan önizlemeyi durdurur.
+• Anahtar kelimeler — başlık, kanal veya açıklamadaki kelimelere göre videoları gizle; tam kelime eşleşmesi ve 7 gün sonra otomatik silme seçenekleriyle.
+• Engellenen Kanallar — seçtiğin bir kanalın tüm videolarını Arama dahil her yerde gizle (YouTube'un "Kanalı önerme" seçeneğinin aksine).
+
+İZLEME İSTATİSTİKLERİ
+YouTube'da zamanının nereye gittiğini gör: kategori başına dakika (Eğitim, Eğlence, Müzik…), önceki dönemlerle karşılaştırmalı günlük, haftalık ve aylık izleme süresi ve son videonun gerçekten ne kadarını izlediğin. Hepsi yalnızca cihazında saklanır.
+
+NEDEN
+Shorts, otomatik oynatma ve kırmızı rozetler seni ekranda tutmak için tasarlanmış mekanizmalardır. Focus Tube bunları kapatır; YouTube yeniden bilinçli olarak kullandığın bir araca dönüşür — ders çalışmak, çalışmak ve dijital iyi oluş için ideal.
+
+GİZLİLİK
+Hesap yok, analiz yok, sunucu yok. Hiçbir veri üçüncü taraflara gönderilmez. İzleme istatistikleri tarayıcının yerel depolamasında kalır; ayarlar yalnızca Chrome'un kendi uzantı senkronizasyonuyla eşitlenir. Gizlilik politikası: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+ÜCRETSİZ VE AÇIK KAYNAK
+Tüm özellikler ücretsiz — paket yok, günlük sınır yok, lisans anahtarı yok.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Polish — `pl` (Poland)
+
+Polish searches: *ukryj / zablokuj / usuń Shorts YouTube*, *wyłącz
+Shorts*. YouTube's Polish UI calls Mixes *składanki*, so the listing
+does too.
+
+**Name** (44 chars): `Focus Tube – Ukryj i Zablokuj YouTube Shorts`
+
+**Summary** (124 chars):
+```
+Bloker Shorts: usuwa YouTube Shorts, składanki i autoodtwarzanie. Blokuje kanały i słowa, pokazuje czas oglądania. Za darmo.
+```
+
+**Description:**
+```
+Ukryj YouTube Shorts wszędzie i korzystaj z YouTube bez rozpraszaczy. Focus Tube to darmowy bloker Shorts, który usuwa też składanki, autoodtwarzanie i inne pułapki na uwagę — oglądasz to, po co przyszedłeś, i wychodzisz.
+
+Nieoficjalne i niezależne — niepowiązane z YouTube ani Google, nieaprobowane ani niesponsorowane przez nie.
+
+CO BLOKUJE
+• Odtwarzacz Shorts — link /shorts/ otwiera się jako zwykły film albo prowadzi prosto na stronę główną, do wyboru.
+• Półki Shorts — karuzela na stronie głównej i w Subskrypcjach.
+• Shorts w wyszukiwaniu — półka i filtr w wynikach wyszukiwania.
+• Pojedyncze Shorts — karty Shorts w kanałach informacyjnych, Historii, na stronach kanałów i w „Następne”.
+• Linki do Shorts — pozycja w menu bocznym, filtr i karta kanału.
+• Składanki — automatyczne playlisty YouTube „Składanki dla Ciebie”.
+• Autoodtwarzanie — wyłączone, a przełącznik znika.
+• Półki „Odkryj więcej tematów” i „Oglądaj dalej” — opcjonalnie.
+• Tryb spokoju — wycisza czerwone akcenty i plakietkę powiadomień YouTube, rozmywa clickbaitowe miniatury (najedź, by zobaczyć) i zatrzymuje autopodgląd po najechaniu.
+• Słowa kluczowe — ukrywaj filmy według słów w tytule, nazwie kanału lub opisie, z opcją całych słów i automatycznym usuwaniem po 7 dniach.
+• Zablokowane kanały — ukrywaj wszystkie filmy z wybranego kanału, wszędzie, także w Wyszukiwaniu (w przeciwieństwie do „Nie polecaj kanału” w YouTube).
+
+STATYSTYKI
+Zobacz, na co idzie Twój czas w YouTube: minuty według kategorii (Edukacja, Rozrywka, Muzyka…), czas według dnia, tygodnia i miesiąca w porównaniu z poprzednimi okresami oraz ile ostatniego filmu naprawdę obejrzałeś. Wszystko zostaje na Twoim urządzeniu.
+
+DLACZEGO
+Shorts, autoodtwarzanie i czerwone plakietki to mechanizmy, które mają Cię zatrzymać. Focus Tube je wyłącza, żeby YouTube znów był narzędziem, którego używasz świadomie — idealne do nauki, pracy i dbania o cyfrowy dobrostan.
+
+PRYWATNOŚĆ
+Bez konta, bez analityki, bez serwerów. Żadne dane nie trafiają do osób trzecich. Statystyki zostają w lokalnej pamięci przeglądarki; ustawienia synchronizują się wyłącznie przez wbudowaną synchronizację rozszerzeń Chrome. Polityka prywatności: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+ZA DARMO I OPEN SOURCE
+Wszystkie funkcje są darmowe — bez planów, bez dziennych limitów, bez kluczy licencyjnych.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Dutch — `nl` (Netherlands, Belgium)
+
+Dutch searches: *YouTube Shorts verbergen / blokkeren / uitzetten /
+verwijderen*. Many Dutch users run an English Chrome UI, so `en` covers
+part of this market too.
+
+**Name** (50 chars): `Focus Tube – YouTube Shorts verbergen en blokkeren`
+
+**Summary** (128 chars):
+```
+Shorts-blocker: verwijdert YouTube Shorts, mixen en autoplay. Blokkeer kanalen en zoekwoorden, zie je kijktijd. Privé en gratis.
+```
+
+**Description:**
+```
+Verberg YouTube Shorts overal en gebruik YouTube zonder afleiding. Focus Tube is een gratis Shorts-blocker die ook mixen, autoplay en andere aandachtstrekkers weghaalt — je kijkt waarvoor je kwam en gaat weer.
+
+Onofficieel en onafhankelijk — niet verbonden aan, goedgekeurd of gesponsord door YouTube of Google.
+
+WAT HET BLOKKEERT
+• De Shorts-speler — een /shorts/-link opent als gewone video of gaat meteen naar Home, jij kiest.
+• Shorts-planken — de carrousel op Home en Abonnementen.
+• Shorts in zoekresultaten — de plank en filterchip bij zoekresultaten.
+• Losse Shorts — Shorts-kaarten in feeds, Geschiedenis, kanaalpagina's en ‘Volgende’.
+• Shorts-links — het zijbalkitem, de filterchip en het kanaaltabblad.
+• Mixen — YouTube's automatisch gemaakte afspeellijsten ‘Mixen voor jou’.
+• Autoplay — staat uit en de schakelaar verdwijnt.
+• Planken ‘Meer onderwerpen ontdekken’ en ‘Verder kijken’ — optioneel.
+• Rustmodus — dempt YouTube's rode accenten en meldingsbadge, vervaagt clickbait-thumbnails (beweeg erover om ze te zien) en stopt de automatische preview bij hoveren.
+• Zoekwoorden — verberg video's op woorden in titel, kanaal of beschrijving, met optie voor hele woorden en automatisch verwijderen na 7 dagen.
+• Geblokkeerde kanalen — verberg elke video van een gekozen kanaal, overal, ook in Zoeken (anders dan YouTube's ‘Kanaal niet aanbevelen’).
+
+KIJKSTATISTIEKEN
+Zie waar je YouTube-tijd naartoe gaat: minuten per categorie (Onderwijs, Entertainment, Muziek…), kijktijd per dag, week en maand vergeleken met eerdere periodes, en hoeveel van je laatste video je echt hebt gezien. Alles blijft op je eigen apparaat.
+
+WAAROM
+Shorts, autoplay en rode badges zijn mechanismen om je vast te houden. Focus Tube zet ze uit, zodat YouTube weer een hulpmiddel is dat je bewust gebruikt — ideaal voor studeren, werken en digitaal welzijn.
+
+PRIVACY
+Geen account, geen analytics, geen servers. Er wordt nooit iets naar derden gestuurd. Kijkstatistieken blijven in de lokale opslag van je browser; instellingen synchroniseren alleen via Chromes eigen extensiesynchronisatie. Privacybeleid: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+GRATIS EN OPEN SOURCE
+Alle functies zijn gratis — geen abonnementen, geen daglimiet, geen licentiesleutel.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Ukrainian — `uk` (Ukraine)
+
+Ukrainian searches: *приховати / заблокувати / прибрати Shorts на
+YouTube*. Ukrainian-UI users should get Ukrainian, not the Russian
+listing, so this locale matters even though some Ukrainians also search
+in Russian.
+
+**Name** (51 chars): `Focus Tube – Приховати й заблокувати YouTube Shorts`
+
+**Summary** (129 chars):
+```
+Блокувальник Shorts: прибирає YouTube Shorts, мікси й автовідтворення. Блокує канали й слова, показує час перегляду. Безкоштовно.
+```
+
+**Description:**
+```
+Приховайте YouTube Shorts усюди й користуйтеся YouTube без відволікань. Focus Tube — безкоштовний блокувальник Shorts, який також прибирає мікси, автовідтворення та інші приманки для уваги: ви дивитеся те, по що прийшли, і йдете.
+
+Неофіційне й незалежне розширення — не пов'язане з YouTube чи Google, не схвалене й не спонсороване ними.
+
+ЩО БЛОКУЄТЬСЯ
+• Плеєр Shorts — посилання /shorts/ відкривається як звичайне відео або одразу веде на головну, на ваш вибір.
+• Полиці Shorts — карусель на Головній і в Підписках.
+• Shorts у пошуку — полиця й фільтр у результатах пошуку.
+• Окремі Shorts — картки Shorts у стрічках, Історії, на сторінках каналів і в «Далі».
+• Посилання на Shorts — пункт бічного меню, фільтр і вкладка каналу.
+• Мікси — автоматичні плейлисти YouTube «Мікси для вас».
+• Автовідтворення — вимикається, а перемикач зникає.
+• Полиці «Інші теми» та «Продовжити перегляд» — за бажанням.
+• Спокійний режим — приглушує червоні акценти й значок сповіщень YouTube, розмиває клікбейтні обкладинки (наведіть, щоб побачити) і вимикає автопрев'ю під час наведення.
+• Ключові слова — приховуйте відео за словами в назві, каналі чи описі, з режимом цілих слів і автовидаленням через 7 днів.
+• Заблоковані канали — приховуйте всі відео вибраного каналу всюди, зокрема в Пошуку (на відміну від «Не рекомендувати канал» у YouTube).
+
+СТАТИСТИКА
+Дізнайтеся, куди йде ваш час на YouTube: хвилини за категоріями (Освіта, Розваги, Музика…), час за днями, тижнями й місяцями порівняно з попередніми періодами та яку частину останнього відео ви справді переглянули. Усе зберігається лише на вашому пристрої.
+
+НАВІЩО
+Shorts, автовідтворення й червоні значки — механізми утримання уваги. Focus Tube вимикає їх, щоб YouTube знову став інструментом, яким ви користуєтеся свідомо, — для навчання, роботи й цифрового добробуту.
+
+КОНФІДЕНЦІЙНІСТЬ
+Без акаунта, без аналітики, без серверів. Жодні дані не передаються третім особам. Статистика зберігається в локальному сховищі браузера; налаштування синхронізуються лише через вбудовану синхронізацію розширень Chrome. Політика конфіденційності: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+БЕЗКОШТОВНО Й З ВІДКРИТИМ КОДОМ
+Усі функції безкоштовні — без тарифів, без денних лімітів, без ліцензійних ключів.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
+## Arabic — `ar` (Saudi Arabia, Egypt, UAE, the Gulf, North Africa)
+
+**Listing only.** `_locales/ar` localizes just the name, summary, and
+toolbar tooltip; the popup falls back to English (same approach `hi`
+used to take). A full Arabic popup needs right-to-left layout work
+first. This is still worth having: Saudi Arabia and the Gulf have some
+of the highest YouTube watch time per person in the world, and the
+store indexes this Arabic copy for Arabic-UI users. Searches:
+*إخفاء / حظر / إزالة شورتس يوتيوب*, *مانع Shorts*. "YouTube Shorts" stays in
+Latin script in the name; the description also uses شورتس, the
+Arabic spelling people type.
+
+**Name** (38 chars): `Focus Tube – إخفاء وحظر YouTube Shorts`
+
+**Summary** (124 chars):
+```
+مانع Shorts: أزل YouTube Shorts وقوائم Mix والتشغيل التلقائي. احظر القنوات والكلمات، وتابع وقت المشاهدة. خاص ومجاني بالكامل.
+```
+
+**Description:**
+```
+أخفِ YouTube Shorts (شورتس يوتيوب) في كل مكان واستمتع بيوتيوب بلا تشتيت. Focus Tube مانع Shorts مجاني يزيل أيضًا قوائم Mix والتشغيل التلقائي وغيرها من عناصر جذب الانتباه — شاهد ما جئت من أجله ثم غادر.
+
+غير رسمي ومستقل — لا يتبع YouTube أو Google ولا يحظى بتأييدهما أو رعايتهما.
+
+ما الذي يحظره
+• مشغّل Shorts — يُفتح رابط ‎/shorts/‎ كفيديو عادي أو يعيدك مباشرة إلى الصفحة الرئيسية، حسب اختيارك.
+• رفوف Shorts — الشريط الدوّار في الصفحة الرئيسية والاشتراكات.
+• Shorts في البحث — الرف وشريحة التصفية في نتائج البحث.
+• مقاطع Shorts المتفرقة — بطاقات Shorts في الخلاصات والسجل وصفحات القنوات والفيديو التالي.
+• روابط Shorts — عنصر الشريط الجانبي وشريحة التصفية وتبويب القناة.
+• قوائم Mix — قوائم "Mix مقترحة لك" التي ينشئها YouTube تلقائيًا.
+• التشغيل التلقائي — يُوقَف ويُزال زرّه.
+• رفوف "استكشاف مزيد من المواضيع" و"متابعة المشاهدة" — اختيارية.
+• الوضع الهادئ — يخفّف اللون الأحمر وشارة الإشعارات، ويموّه الصور المصغّرة المضلِّلة (مرّر المؤشر لرؤيتها)، ويوقف المعاينة التلقائية عند التمرير.
+• الكلمات المفتاحية — أخفِ الفيديوهات حسب كلمات في العنوان أو القناة أو الوصف، مع خيار مطابقة الكلمة كاملة والحذف التلقائي بعد 7 أيام.
+• القنوات المحظورة — أخفِ كل فيديوهات قناة تختارها في كل مكان، بما في ذلك البحث (بخلاف خيار "عدم اقتراح القناة" في YouTube).
+
+إحصاءات المشاهدة
+اعرف أين يذهب وقتك على يوتيوب: الدقائق لكل فئة (التعليم، الترفيه، الموسيقى…)، ووقت المشاهدة يوميًا وأسبوعيًا وشهريًا مقارنةً بالفترات السابقة، وكم شاهدت فعلًا من آخر فيديو. كل ذلك محفوظ على جهازك فقط.
+
+لماذا
+Shorts والتشغيل التلقائي والشارات الحمراء آليات صُمّمت لإبقائك تشاهد. يوقفها Focus Tube ليعود يوتيوب أداة تستخدمها عن قصد — مثالي للدراسة والعمل والصحة الرقمية.
+
+الخصوصية
+بلا حساب، بلا تحليلات، بلا خوادم. لا تُرسل أي بيانات إلى أي طرف ثالث. تبقى الإحصاءات في التخزين المحلي للمتصفح، وتُزامَن الإعدادات فقط عبر مزامنة الإضافات المدمجة في Chrome. سياسة الخصوصية: https://github.com/bommireddy30/focus-tube/blob/main/PRIVACY.md
+
+مجاني ومفتوح المصدر
+كل الميزات مجانية — بلا باقات، بلا حد يومي، بلا مفتاح ترخيص. واجهة الإضافة باللغة الإنجليزية حاليًا.
+https://github.com/bommireddy30/focus-tube
+```
+
+---
+
 ## Localized assets (per language)
 
-Ready: `store-assets/<lang>/` for `ja`, `de`, `id`, `ms`, `fil`, `vi`,
-`th`, and `ro` each hold `popup-blocking.png` and `popup-stats.png`
+Ready: `store-assets/<lang>/` for `ja`, `de`, `hi`, `id`, `ms`, `fil`, `vi`,
+`th`, `ro`, `pt_BR`, `pt_PT`, `es`, `fr`, `ru`, `it`, `ko`, `zh_CN`,
+`zh_TW`, `tr`, `pl`, `nl`, and `uk` each hold `popup-blocking.png` and `popup-stats.png`
 (1280x800, 24-bit, no alpha): the real popup rendered in that language
 with the same demo data as the English shots, plus translated
 headline/pill copy. Regenerate with `store-assets/capture-localized.js`.
@@ -549,7 +1260,8 @@ these 5, in this order:
 5. `store-assets/youtube-watch.png`
 
 That is the English set with the two popup shots swapped for the
-localized ones. If a language arrives pre-filled with the English
+localized ones. **Arabic** has no localized popup shots (its popup is
+English), so it uses the plain English set of 5. If a language arrives pre-filled with the English
 screenshots, delete the two English popup shots before adding these.
 The promo tiles are the same for every language.
 
@@ -565,8 +1277,18 @@ The promo tiles are the same for every language.
   Japan, German tech blogs/forums) raise weekly users, the strongest
   ranking input.
 - **Measure:** Developer Dashboard → Analytics shows impressions and
-  installs by country — compare 4 weeks before/after this change for IN,
-  US, DE, JP before iterating on wording.
+  installs by country — compare 4 weeks before/after each listing change
+  before iterating on wording. For 3.8.13 watch BR, MX, ES, FR, RU, KR,
+  TW, TR, SA and IN (Hindi). A market with impressions but few installs
+  needs better copy or screenshots; one with no impressions needs better
+  name/summary keywords.
+- **Outside traffic in new markets:** a short post where each audience
+  already talks about digital wellbeing does more than any wording change:
+  TabNews (Brazil), Habr (Russia), Clien/GeekNews (Korea), PTT (Taiwan),
+  Wykop (Poland), Tweakers (Netherlands), Ekşi Sözlük (Turkey).
+- **Reviews in new languages:** reply in the reviewer's language. A
+  handful of reviews in Portuguese or Spanish noticeably lifts
+  conversion in those listings.
 
 ## Single purpose description (Privacy practices tab)
 

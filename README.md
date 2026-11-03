@@ -464,15 +464,23 @@ on the extension's card first — that's usually the real story.
 
 ## Languages
 
-Full popup translations: English, Japanese, German, Indonesian,
-Malay, Filipino, Vietnamese, Thai, Romanian. Hindi localizes only the
-store name/summary (the popup falls back to English).
+Full popup translations: English, Japanese, German, Hindi, Indonesian,
+Malay, Filipino, Vietnamese, Thai, Romanian, Portuguese (Brazil and
+Portugal), Spanish, French, Russian, Ukrainian, Italian, Korean, Chinese
+(Simplified and Traditional), Turkish, Polish, Dutch. Arabic localizes
+only the store name/summary (the popup falls back to English): a full
+right-to-left popup (Arabic, Hebrew, Persian) would need RTL layout work
+first.
 
 All popup text, plus the extension's name and description, lives in
 `_locales/<lang>/messages.json` (`en`, `ja`, `de`, `id`, `ms`, `fil`,
-`vi`, `th`, `ro`, plus a partial `hi`). Chrome picks the file
-from the browser's UI language automatically and falls back to English
-for anything else. YouTube category names are stored in English and only
+`vi`, `th`, `ro`, `pt_BR`, `pt_PT`, `es`, `fr`, `ru`, `uk`, `it`, `ko`,
+`zh_CN`, `zh_TW`, `tr`, `pl`, `nl`, `hi`, plus a partial `ar`). Chrome picks
+the file from the browser's UI language automatically, trying the full
+region first and then the bare language (`es-MX` → `es`), and falls back
+to English for anything else. Portuguese needs both region files:
+Chrome won't serve `pt_PT` to a `pt-BR` browser. `?lang=` and the
+override take the folder name (`?lang=pt_BR`). YouTube category names are stored in English and only
 translated when the popup shows them (`cat_*` / `recency_*` keys).
 
 **Testing a language without changing your browser** (popup only; these
@@ -783,3 +791,27 @@ spaces (Thai, Lao, Myanmar, Khmer, Japanese, Chinese). `manifest.json`
 bumped 3.8.11 → 3.8.12. Adds localized store screenshots for all six
 languages (`store-assets/<lang>/`). `focus-tube-v3.8.12.zip` is packaged
 and ready to upload.
+
+**3.8.13 release notes:** localizes the full popup, name, and summary into
+Portuguese (`pt_BR`, `pt_PT`), Spanish (`es`, which also serves Latin
+America), French (`fr`), Russian (`ru`), Ukrainian (`uk`), Italian
+(`it`), Korean (`ko`), Simplified and Traditional Chinese (`zh_CN`,
+`zh_TW`), Turkish (`tr`), Polish (`pl`), and Dutch (`nl`), each with its
+own suggested-keyword lists and YouTube's category names in that
+language. `STORE_LISTING.md` gets a dashboard description per new
+language and the ASO table covers the new markets. `i18n.js` now turns a
+region-coded test override (`pt_BR`) into a BCP 47 tag (`pt-BR`) before
+using it as the page `lang` and for date formatting, since
+`toLocaleDateString("pt_BR")` throws. Adds localized store screenshots
+for all thirteen (`store-assets/<lang>/`). `manifest.json` bumped
+3.8.12 → 3.8.13.
+
+Also in 3.8.13, for ASO: the Hindi popup is now fully translated (it
+used to fall back to English), with Hindi store screenshots, so India's
+Hindi-UI users see their language from listing to popup. A
+listing-only Arabic locale (`ar`: name, summary, tooltip) and dashboard
+description cover Saudi Arabia, Egypt and the Gulf. `STORE_LISTING.md`'s
+off-listing section now lists the markets to watch in Analytics and
+where to seed outside traffic in each new market.
+`focus-tube-v3.8.13.zip` is packaged and ready to upload (older zips
+removed).
